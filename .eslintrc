@@ -1,0 +1,30 @@
+{
+	"parser": "babel-eslint",
+	"parserOptions": {
+		"ecmaVersion": 8,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"experimentalObjectRestSpread": true
+		}
+	},
+	"extends": [
+		"prettier",
+		"airbnb-base"
+	],
+	"rules": {
+		"no-tabs": "off",
+		"indent": [
+			"error",
+			"tab"
+		],
+		"quotes": [
+			"error",
+			"double"
+		],
+		"arrow-parens": [
+			"error",
+			"as-needed"
+		],
+		"no-plusplus": "off"
+	}
+}
