@@ -4,7 +4,7 @@ A QUnit test runner with Istanbul and PhantomJS.
 
 ## Prerequisites
 
-You must be using Node >= X (TODO: Determine this).
+You must be using Node >= 6.
 
 This test runner assumes that your code is already instrumented for Istanbul. TODO: How to instrument with Babel.
 
