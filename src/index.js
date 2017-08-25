@@ -43,7 +43,7 @@ module.exports = function executeTestRunner(
 	}
 
 	if (options.page) {
-		// Push default imeout value unless specified otherwise
+		// Push default timeout value unless specified otherwise
 		if (!options.timeout) {
 			childArgs.push(5);
 		}
