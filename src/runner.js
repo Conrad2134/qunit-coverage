@@ -1,79 +1,100 @@
+/*global phantom:false, require:false, console:false, window:false, QUnit:false */
+
 (function() {
-	const args = require("system").args;
-	const fs = require("fs");
+	"use strict";
+
+	var url,
+		page,
+		timeout,
+		coverageLocation,
+		args = require("system").args,
+		fs = require("fs");
 
 	// arg[0]: scriptName, args[1...]: arguments
-	if (args.length < 4) {
+	if (args.length < 3) {
 		console.error(
 			"Usage:\n  phantomjs [phantom arguments] runner.js [url-of-your-qunit-testsuite] [timeout-in-seconds] [page-properties] [coverageLocation]"
 		);
 		exit(1);
 	}
 
-	const url = args[1];
-	const timeout = args[2];
-	const page = require("webpage").create();
+	url = args[1];
+	timeout = args[2];
+
+	page = require("webpage").create();
 
 	try {
-		const pageProperties = JSON.parse(args[3]);
+		var pageProperties = JSON.parse(args[3]);
 
 		if (pageProperties) {
-			for (const prop in pageProperties) {
+			for (var prop in pageProperties) {
 				if (pageProperties.hasOwnProperty(prop)) {
 					page[prop] = pageProperties[prop];
 				}
 			}
 		}
 	} catch (e) {
-		console.error(`Error parsing "${args[3]}": ${e}`);
+		console.error('Error parsing "' + args[3] + '": ' + e);
 	}
 
-	const coverageLocation = args[4] || false;
+	if (args[4] !== undefined) {
+		coverageLocation = args[4];
+	}
 
 	// Route `console.log()` calls from within the Page context to the main Phantom context (i.e. current `this`)
-	page.onConsoleMessage = msg => {
+	page.onConsoleMessage = function(msg) {
 		console.log(msg);
 	};
 
-	page.onInitialized = () => {
+	page.onInitialized = function() {
 		page.evaluate(addLogging);
 	};
 
-	page.onCallback = message => {
-		if (message && message.name === "QUnit.done") {
-			const result = message.data;
-			const failed = !result || !result.total || result.failed;
+	page.onCallback = function(message) {
+		var result, failed;
 
-			if (!result.total) {
-				console.error(
-					"No tests were executed. Are you loading tests asynchronously?"
-				);
+		if (message) {
+			if (message.name === "QUnit.done") {
+				result = message.data;
+				failed = !result || !result.total || result.failed;
+
+				if (!result.total) {
+					console.error(
+						"No tests were executed. Are you loading tests asynchronously?"
+					);
+				}
+
+				exit(failed ? 1 : 0);
 			}
-
-			exit(failed ? 1 : 0);
 		}
 	};
 
-	page.open(url, status => {
+	page.open(url, function(status) {
 		if (status !== "success") {
 			console.error("Unable to access network: " + status);
 			exit(1);
 		} else {
 			// Cannot do this verification with the 'DOMContentLoaded' handler because it
 			// will be too late to attach it if a page does not have any script tags.
-			const qunitMissing = page.evaluate(
-				() => typeof QUnit === "undefined" || !QUnit
-			);
-
+			var qunitMissing = page.evaluate(function() {
+				return typeof QUnit === "undefined" || !QUnit;
+			});
 			if (qunitMissing) {
 				console.error("The `QUnit` object is not present on this page.");
 				exit(1);
 			}
 
+			// Set a default timeout value if the user does not provide one
+			if (typeof timeout === "undefined") {
+				timeout = 5;
+			}
+
 			// Set a timeout on the test running, otherwise tests with async problems will hang forever
-			setTimeout(() => {
+			setTimeout(function() {
 				console.error(
-					`The specified timeout of ${timeout} seconds has expired. Aborting...`
+					"The specified timeout of " +
+						timeout +
+						" seconds has expired. Aborting..."
 				);
 				exit(1);
 			}, timeout * 1000);
@@ -85,9 +106,9 @@
 	function addLogging() {
 		window.document.addEventListener(
 			"DOMContentLoaded",
-			() => {
-				QUnit.log(details => {
-					let response;
+			function() {
+				QUnit.log(function(details) {
+					var response;
 
 					console.log((details.result ? "✔ " : "✖ ") + details.message);
 
@@ -114,17 +135,17 @@
 					}
 				});
 
-				QUnit.moduleStart(details => {
+				QUnit.moduleStart(function(details) {
 					if (details.name) {
 						console.log("\n" + details.name);
 					}
 				});
 
-				QUnit.testStart(result => {
+				QUnit.testStart(function(result) {
 					console.log("\n" + result.name);
 				});
 
-				QUnit.done(result => {
+				QUnit.done(function(result) {
 					console.log(
 						"\n" +
 							"Took " +
@@ -153,7 +174,9 @@
 	function exit(code) {
 		if (page) {
 			if (coverageLocation) {
-				var coverage = page.evaluate(() => __coverage__);
+				var coverage = page.evaluate(function() {
+					return __coverage__;
+				});
 				console.log("Writing coverage to " + coverageLocation);
 				fs.write(coverageLocation, JSON.stringify(coverage), "w");
 			}

@@ -19,7 +19,7 @@ module.exports = function executeTestRunner(
 	const isAbsolutePath = absolutePath.indexOf(filePath) !== -1;
 	const childArgs = [];
 
-	// TODO: Refactor block
+	// TODO: Refactor block and implement other runners
 	/* if (options.verbose) {
 		runner = path.join(phantomjsRunnerDir, "runner-list.js");
 	} else if (options.customRunner) {
@@ -42,10 +42,8 @@ module.exports = function executeTestRunner(
 	childArgs.push(JSON.stringify(options.page || {}));
 
 	if (options.coverageLocation) {
-		// childArgs.push(path.resolve(options.coverageLocation));
+		childArgs.push(path.resolve(options.coverageLocation));
 	}
-
-	console.dir(childArgs);
 
 	const process = childProcess.execFile(
 		binPath,
