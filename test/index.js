@@ -8,10 +8,13 @@ describe("qunit-coverage", function qunitCoverage() {
 	this.timeout(5000);
 
 	it("tests should pass", cb => {
-		qunit("test/fixtures/passing.html");
+		qunit("test/fixtures/passing.html", {
+			coverageLocation: "../coverage.json",
+		});
 
 		process.stdout.write = str => {
 			str = stripAnsi(str);
+			out(str);
 
 			if (/10 passed, 0 failed./.test(str)) {
 				assert(true);

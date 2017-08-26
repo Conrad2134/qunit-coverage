@@ -20,6 +20,12 @@ TODO: How to use.
 
 Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for more information on working with this project.
 
+## TODO
+
+* clean up test output
+* see if we can handle errors better
+* support different coverage format output
+
 **Inspired by these projects:**
 
 * [node-qunit-phantomjs](https://github.com/jonkemp/node-qunit-phantomjs)
