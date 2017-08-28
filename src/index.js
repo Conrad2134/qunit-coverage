@@ -2,6 +2,8 @@ const path = require("path");
 const chalk = require("chalk");
 const childProcess = require("child_process");
 const phantomjs = require("phantomjs-prebuilt");
+const istanbul = require("istanbul");
+const fs = require("fs");
 
 const binPath = phantomjs.path;
 
@@ -42,13 +44,18 @@ module.exports = function executeTestRunner(
 	childArgs.push(JSON.stringify(options.page || {}));
 
 	if (options.coverageLocation) {
-		childArgs.push(path.resolve(options.coverageLocation));
+		childArgs.push(
+			path.join(path.resolve(options.coverageLocation), "coverage.json")
+		);
 	}
 
 	const process = childProcess.execFile(
 		binPath,
 		childArgs,
 		(err, stdout, stderr) => {
+			const collector = new istanbul.Collector();
+			const reporter = new istanbul.Reporter(false, options.coverageLocation);
+
 			let out;
 			let result;
 			let message;
@@ -86,6 +93,20 @@ module.exports = function executeTestRunner(
 					});
 				} catch (ex) {
 					this.emit("error", new Error(ex));
+				}
+
+				// If coverage exists, write other reports
+				if (options.coverageLocation) {
+					const coverage = JSON.parse(
+						fs.readFileSync(
+							path.join(options.coverageLocation, "coverage.json"),
+							"utf8"
+						)
+					);
+
+					collector.add(coverage);
+					reporter.addAll(["lcovonly", "html", "text-summary"]);
+					reporter.write(collector, true);
 				}
 			}
 

@@ -9,7 +9,7 @@ describe("qunit-coverage", function qunitCoverage() {
 
 	it("tests should pass", cb => {
 		qunit("test/fixtures/passing.html", {
-			coverageLocation: "dist/coverage.json",
+			coverageLocation: "dist/coverage",
 		});
 
 		// TODO: Test if coverage was written
