@@ -177,7 +177,7 @@
 				var coverage = page.evaluate(function() {
 					return __coverage__;
 				});
-				console.log("Writing coverage to " + coverageLocation);
+
 				fs.write(coverageLocation, JSON.stringify(coverage), "w");
 			}
 			page.close();

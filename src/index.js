@@ -106,7 +106,9 @@ module.exports = function executeTestRunner(
 
 					collector.add(coverage);
 					reporter.addAll(["lcovonly", "html", "text-summary"]);
-					reporter.write(collector, true);
+					reporter.write(collector, true, () => {
+						console.log(`Coverage written to ${options.coverageLocation}`);
+					});
 				}
 			}
 
