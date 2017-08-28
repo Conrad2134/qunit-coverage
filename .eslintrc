@@ -14,6 +14,7 @@
 		"quotes": ["error", "double"],
 		"arrow-parens": ["error", "as-needed"],
 		"no-plusplus": "off",
-		"no-console": "off"
+		"no-console": "off",
+		"comma-dangle": "off"
 	}
 }

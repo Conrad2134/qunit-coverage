@@ -66,7 +66,7 @@ module.exports = function executeTestRunner(
 							console.log(output);
 
 							if (out.exceptions) {
-								for (let test in out.exceptions) {
+								for (test in out.exceptions) {
 									console.log();
 									console.log(
 										`${chalk.red("Test failed")}:`,
