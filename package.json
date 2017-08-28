@@ -41,6 +41,7 @@
 		"child_process": "^1.0.2",
 		"istanbul": "^0.4.5",
 		"phantomjs-prebuilt": "^2.1.15",
+		"puppeteer": "^0.10.1",
 		"qunit-phantomjs-runner": "^2.3.0"
 	}
 }
