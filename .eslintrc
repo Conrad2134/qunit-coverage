@@ -7,24 +7,13 @@
 			"experimentalObjectRestSpread": true
 		}
 	},
-	"extends": [
-		"prettier",
-		"airbnb-base"
-	],
+	"extends": ["prettier", "airbnb-base"],
 	"rules": {
 		"no-tabs": "off",
-		"indent": [
-			"error",
-			"tab"
-		],
-		"quotes": [
-			"error",
-			"double"
-		],
-		"arrow-parens": [
-			"error",
-			"as-needed"
-		],
-		"no-plusplus": "off"
+		"indent": ["error", "tab"],
+		"quotes": ["error", "double"],
+		"arrow-parens": ["error", "as-needed"],
+		"no-plusplus": "off",
+		"no-console": "off"
 	}
 }

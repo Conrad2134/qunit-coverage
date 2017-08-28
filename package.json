@@ -1,44 +1,45 @@
 {
-  "name": "qunit-coverage",
-  "version": "0.1.0",
-  "description": "A QUnit test runner with Istanbul and PhantomJS.",
-  "main": "dist/index.js",
-  "scripts": {
-    "clean": "rimraf dist && mkdirp dist",
-    "instrument": "webpack --config webpack.config.test.js",
-    "test": "npm run clean && npm run instrument && mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Conrad2134/qunit-coverage.git"
-  },
-  "author": "Connor Uhlman <connor.uhlman@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Conrad2134/qunit-coverage/issues"
-  },
-  "homepage": "https://github.com/Conrad2134/qunit-coverage#readme",
-  "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^7.2.3",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-istanbul": "^4.1.4",
-    "babel-preset-env": "^1.6.0",
-    "eslint": "^4.5.0",
-    "eslint-config-airbnb-base": "^11.3.2",
-    "eslint-config-prettier": "^2.3.0",
-    "eslint-plugin-import": "^2.7.0",
-    "mkdirp": "^0.5.1",
-    "mocha": "^3.5.0",
-    "qunitjs": "^2.4.0",
-    "rimraf": "^2.6.1",
-    "strip-ansi": "^4.0.0",
-    "webpack": "^3.5.5"
-  },
-  "dependencies": {
-    "chalk": "^2.1.0",
-    "child_process": "^1.0.2",
-    "phantomjs-prebuilt": "^2.1.15",
-    "qunit-phantomjs-runner": "^2.3.0"
-  }
+	"name": "qunit-coverage",
+	"version": "0.1.0",
+	"description": "A QUnit test runner with Istanbul and PhantomJS.",
+	"main": "dist/index.js",
+	"scripts": {
+		"lint": "eslint src/**/*.js",
+		"clean": "rimraf dist && mkdirp dist",
+		"instrument": "webpack --config webpack.config.test.js",
+		"test": "npm run clean && npm run instrument && mocha"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Conrad2134/qunit-coverage.git"
+	},
+	"author": "Connor Uhlman <connor.uhlman@gmail.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Conrad2134/qunit-coverage/issues"
+	},
+	"homepage": "https://github.com/Conrad2134/qunit-coverage#readme",
+	"devDependencies": {
+		"babel-core": "^6.26.0",
+		"babel-eslint": "^7.2.3",
+		"babel-loader": "^7.1.2",
+		"babel-plugin-istanbul": "^4.1.4",
+		"babel-preset-env": "^1.6.0",
+		"eslint": "^4.5.0",
+		"eslint-config-airbnb-base": "^11.3.2",
+		"eslint-config-prettier": "^2.3.0",
+		"eslint-plugin-import": "^2.7.0",
+		"mkdirp": "^0.5.1",
+		"mocha": "^3.5.0",
+		"qunitjs": "^2.4.0",
+		"rimraf": "^2.6.1",
+		"strip-ansi": "^4.0.0",
+		"webpack": "^3.5.5"
+	},
+	"dependencies": {
+		"chalk": "^2.1.0",
+		"child_process": "^1.0.2",
+		"phantomjs-prebuilt": "^2.1.15",
+		"qunit-phantomjs-runner": "^2.3.0"
+	}
 }
