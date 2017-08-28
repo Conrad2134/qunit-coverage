@@ -11,3 +11,6 @@ test_script:
   - node --version
   - npm --version
   - npm test
+
+# Don't try to build a project / solution
+build: off
