@@ -5,12 +5,16 @@ const phantomjs = require("phantomjs-prebuilt");
 
 const binPath = phantomjs.path;
 
+const phantomjsRunnerDir = path.dirname(
+	require.resolve("qunit-phantomjs-runner")
+);
+
 module.exports = function executeTestRunner(
 	filePath,
 	options = {},
 	callback = () => {}
 ) {
-	const runner = "./runner.js";
+	const runner = "./runner.js"; // path.join(phantomjsRunnerDir, "runner-json.js");
 	const absolutePath = path.resolve(filePath);
 	const isAbsolutePath = absolutePath.indexOf(filePath) !== -1;
 	const childArgs = [];
@@ -30,7 +34,7 @@ module.exports = function executeTestRunner(
 
 	childArgs.push(
 		path.join(__dirname, runner),
-		isAbsolutePath ? `file:///${absolutePath.replace(/\\/g, "/")}` : filePath
+		isAbsolutePath ? "file:///" + absolutePath.replace(/\\/g, "/") : filePath
 	);
 
 	childArgs.push(options.timeout || 5);
@@ -69,8 +73,8 @@ module.exports = function executeTestRunner(
 								for (test in out.exceptions) {
 									console.log();
 									console.log(
-										`${chalk.red("Test failed")}:`,
-										`${chalk.red(test)}:`
+										chalk.red("Test failed") + ":",
+										chalk.red(test) + ":"
 									);
 									console.log();
 									console.log(out.exceptions[test].join("\n  "));
