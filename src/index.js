@@ -4,7 +4,6 @@ const childProcess = require("child_process");
 const phantomjs = require("phantomjs-prebuilt");
 const istanbul = require("istanbul");
 const fs = require("fs");
-const puppeteer = require("puppeteer");
 
 const binPath = phantomjs.path;
 
@@ -50,25 +49,6 @@ module.exports = function executeTestRunner(
 		);
 	}
 
-	// TODO: Node 6 this
-
-	(async () => {
-		try {
-			const browser = await puppeteer.launch();
-			const page = browser.newPage();
-			await page.goto(
-				isAbsolutePath
-					? "file:///" + absolutePath.replace(/\\/g, "/")
-					: filePath
-			);
-			await page.screenshot({ path: "example.png" });
-			browser.close();
-		} catch (ex) {
-			console.error(ex);
-		}
-	})();
-
-	/*
 	const process = childProcess.execFile(
 		binPath,
 		childArgs,
@@ -143,5 +123,4 @@ module.exports = function executeTestRunner(
 	);
 
 	process.on("close", callback);
-	*/
 };
