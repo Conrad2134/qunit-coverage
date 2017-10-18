@@ -1,7 +1,7 @@
 # qunit-coverage [![Build Status](https://travis-ci.org/Conrad2134/qunit-coverage.svg?branch=master)](https://travis-ci.org/Conrad2134/qunit-coverage) [![Build status](https://ci.appveyor.com/api/projects/status/inywlnt2my7d7okp/branch/master?svg=true)](https://ci.appveyor.com/project/Conrad2134/qunit-coverage/branch/master)
 
 
-A QUnit test runner with Istanbul and PhantomJS.
+A QUnit test runner with Istanbul and headless Chrome.
 
 ## Prerequisites
 
