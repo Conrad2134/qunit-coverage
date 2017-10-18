@@ -6,8 +6,8 @@ describe("qunit-coverage", function qunitCoverageTests() {
 
 	it("Tests should pass", done => {
 		qunit("test/fixtures/passing.html", {
-			verbose: false,
-			coverage: false
+			verbose: true,
+			coverage: true
 		}).then(
 			result => {
 				try {

@@ -50,10 +50,10 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 					collector.add(coverageResults);
 
 					reporter.addAll(formats);
-					reporter.write(collector, true, () => {
+					/* reporter.write(collector, true, () => {
 						log();
 						log(`Coverage written to ${chalk.magenta(coverage.output)}`);
-					});
+					}); */
 				}
 
 				log();
