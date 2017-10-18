@@ -2,12 +2,13 @@
 	"name": "qunit-coverage",
 	"version": "0.1.0",
 	"description": "A QUnit test runner with Istanbul and PhantomJS.",
-	"main": "src/index.js",
+	"main": "dist/index.js",
 	"scripts": {
+		"build": "webpack --config webpack.config.js",
 		"lint": "eslint src/**/*.js",
 		"clean": "rimraf dist && mkdirp dist",
 		"instrument": "webpack --config webpack.config.test.js",
-		"test": "npm run clean && npm run instrument && mocha"
+		"test": "npm run clean && npm run instrument && npm run build && mocha"
 	},
 	"repository": {
 		"type": "git",
@@ -38,12 +39,14 @@
 		"webpack": "^3.5.5"
 	},
 	"dependencies": {
+		"babel-plugin-transform-object-rest-spread": "^6.26.0",
 		"chalk": "^2.1.0",
 		"child_process": "^1.0.2",
 		"istanbul": "^0.4.5",
 		"lodash": "^4.17.4",
 		"phantomjs-prebuilt": "^2.1.15",
 		"puppeteer": "^0.12.0",
-		"qunit-phantomjs-runner": "^2.3.0"
+		"qunit-phantomjs-runner": "^2.3.0",
+		"webpack-node-externals": "^1.6.0"
 	}
 }

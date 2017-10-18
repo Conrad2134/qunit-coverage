@@ -14,7 +14,22 @@ module.exports = {
 			{
 				test: /\.js$/,
 				include: [path.join(__dirname, "src"), path.join(__dirname, "test")],
-				use: "babel-loader"
+				use: {
+					loader: "babel-loader",
+					options: {
+						presets: [
+							[
+								"env",
+								{
+									targets: {
+										browsers: ["last 2 versions"]
+									}
+								}
+							]
+						],
+						plugins: [require.resolve("babel-plugin-istanbul")]
+					}
+				}
 			}
 		]
 	}

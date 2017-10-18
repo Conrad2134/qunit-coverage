@@ -1,5 +1,5 @@
 const assert = require("assert");
-const qunit = require("../src/index");
+const qunit = require("../dist/index");
 
 describe("qunit-coverage", function qunitCoverageTests() {
 	this.timeout(5000);

@@ -4,14 +4,10 @@
 			"env",
 			{
 				"targets": {
-					"browsers": [
-						"last 2 versions"
-					]
+					"node": "6.0.0"
 				}
 			}
 		]
 	],
-	"plugins": [
-		"istanbul"
-	]
+	"plugins": ["babel-plugin-transform-object-rest-spread"]
 }
