@@ -43,7 +43,7 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 					const reporter = new istanbul.Reporter(false, coverage.output);
 					const formats = coverage.formats || [];
 
-					if (verbose) {
+					if (verbose && !formats.includes("text-summary")) {
 						formats.push("text-summary");
 					}
 
