@@ -1,12 +1,26 @@
 /* global QUnit, window, __coverage__ */
 
-const path = require("path");
 const chalk = require("chalk");
 const istanbul = require("istanbul");
-const _ = require("lodash");
+const path = require("path");
 const puppeteer = require("puppeteer");
+const _ = require("lodash");
 
-const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), formats: [] }, verbose = false, timeout = 5000 } = {}) => {
+const { getBranchCoverage } = require("./coverage-parser");
+
+const spreadObjectIf = (condition, element) => (condition ? element : {});
+
+const defaults = {
+	timeout: 10000,
+	formats: [],
+	output: process.cwd(),
+	verbose: false,
+};
+
+const qunitChromeRunner = (
+	filePath,
+	{ coverage = { output: defaults.output, formats: defaults.formats }, verbose = defaults.verbose, timeout = defaults.timeout } = {}
+) => {
 	const log = (...val) => {
 		if (verbose) {
 			console.log(...val);
@@ -16,7 +30,7 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 	//	options:
 	//		timeout
 	//		verbose
-	//		`coverage: { output: "...", formats: ["json", ...] }` OR `coverage: false` (does it by default to cwd and json)
+	//		`coverage: { output: "...", formats: ["json", ...] }` OR `coverage: false`
 
 	return new Promise((resolve, reject) => {
 		(async () => {
@@ -27,26 +41,30 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 				log();
 
 				reject(new Error("Timeout exceeded"));
-			}, timeout);
+			}, timeout || defaults.timeout);
 
 			log("Testing", chalk.magenta(path.relative(process.cwd(), filePath)));
 
-			const browser = await puppeteer.launch({
-				headless: true
-			}); // defaults to true, not needed
-
+			const browser = await puppeteer.launch();
 			const page = await browser.newPage();
 
 			await page.exposeFunction("report", async response => {
+				let coverageReport = {};
+
 				if (coverage) {
 					const coverageResults = await page.evaluate(() => __coverage__);
 					const collector = new istanbul.Collector();
-					const reporter = new istanbul.Reporter(false, coverage.output);
-					const formats = coverage.formats || [];
+					const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
+					const formats = coverage.formats || defaults.formats;
 
 					if (verbose && !formats.includes("text-summary")) {
 						formats.push("text-summary");
 					}
+
+					coverageReport = {
+						...coverageReport,
+						branch: getBranchCoverage(coverageResults),
+					};
 
 					collector.add(coverageResults);
 
@@ -68,10 +86,11 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 					pass: !response.failed,
 					results: _.omit(
 						{
-							...response
+							...response,
 						},
 						"runtime"
-					)
+					),
+					...spreadObjectIf(coverage, { coverage: coverageReport }),
 				});
 			});
 
@@ -80,7 +99,7 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 
 				if (qunitMissing) {
 					log();
-					log(chalk.red("Unable to find the QUnit object.")); // TODO: message
+					log(chalk.red("Unable to find the QUnit object."));
 					log();
 
 					reject(new Error("Unable to find the QUnit object"));
