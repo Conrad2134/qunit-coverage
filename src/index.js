@@ -1,7 +1,8 @@
+/* global QUnit, window, __coverage__ */
+
 const path = require("path");
 const chalk = require("chalk");
 const istanbul = require("istanbul");
-const fs = require("fs");
 const _ = require("lodash");
 const puppeteer = require("puppeteer");
 
@@ -75,9 +76,7 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 			});
 
 			await page.on("load", async () => {
-				const qunitMissing = await page.evaluate(() => {
-					return typeof QUnit === "undefined" || !QUnit;
-				});
+				const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
 
 				if (qunitMissing) {
 					log();
@@ -93,7 +92,7 @@ const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), forma
 			});
 
 			// Navigate to our test file
-			await page.goto("file:///" + path.join(process.cwd(), filePath).replace(/\\/g, "/"));
+			await page.goto(`file:///${path.join(process.cwd(), filePath).replace(/\\/g, "/")}`);
 		})();
 	});
 };

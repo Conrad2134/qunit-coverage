@@ -15,6 +15,7 @@
 		"arrow-parens": ["error", "as-needed"],
 		"no-plusplus": "off",
 		"no-console": "off",
-		"comma-dangle": "off"
+		"comma-dangle": "off",
+		"max-len": "off"
 	}
 }
