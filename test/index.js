@@ -1,101 +1,53 @@
 const assert = require("assert");
-const stripAnsi = require("strip-ansi");
 const qunit = require("../src/index");
 
-// const out = process.stdout.write.bind(process.stdout);
+describe("qunit-coverage", function qunitCoverageTests() {
+	this.timeout(5000);
 
-describe("qunit-coverage", function qunitCoverage() {
-	this.timeout(10000);
-
-	it("tests should pass", cb => {
+	it("Tests should pass", done => {
 		qunit("test/fixtures/passing.html", {
-			output: "dist",
-		});
+			verbose: false,
+			coverage: false
+		}).then(
+			result => {
+				try {
+					assert.deepStrictEqual(result, { pass: true, results: { passed: 10, failed: 0, total: 10 } }, "All tests should pass.");
 
-		// TODO: Test if coverage was written
-		/* process.stdout.write = str => {
-			str = stripAnsi(str);
-
-			if (/10 passed, 0 failed./.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
-			}
-		}; */
-	});
-	/*
-	it("tests should fail", cb => {
-		qunit("test/fixtures/failing.html");
-
-		process.stdout.write = str => {
-			str = stripAnsi(str);
-
-			if (/10 passed, 1 failed./.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
-			}
-		};
-	});
-
-	it("tests should not be affected by console.log", cb => {
-		qunit("test/fixtures/console-log.html");
-
-		process.stdout.write = str => {
-			str = stripAnsi(str);
-
-			if (/10 passed, 0 failed./.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
-			}
-		};
-	});
-
-	it("tests should pass with options", cb => {
-		qunit("test/fixtures/passing.html", {
-			"phantomjs-options": ["--ssl-protocol=any"],
-		});
-
-		process.stdout.write = str => {
-			str = stripAnsi(str);
-
-			if (/10 passed, 0 failed./.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
-			}
-		};
-	});
-
-	it("tests should pass with custom viewport", cb => {
-		qunit("test/fixtures/custom-viewport.html", {
-			page: {
-				viewportSize: { width: 1280, height: 800 },
+					done();
+				} catch (ex) {
+					done(ex);
+				}
 			},
+			err => {
+				done(err);
+			}
+		);
+	});
+
+	it("Timeout should fail the test runner", done => {
+		qunit("test/fixtures/passing.html", {
+			verbose: false,
+			timeout: 1
+		}).catch(err => {
+			assert.strictEqual(err.message, "Timeout exceeded", "Error should be thrown");
+
+			done();
 		});
-
-		process.stdout.write = str => {
-			str = stripAnsi(str);
-
-			if (/2 passed, 0 failed./.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
-			}
-		};
 	});
 
-	it("tests should time out", cb => {
-		qunit("test/fixtures/async.html", { timeout: 1 });
+	/* 	it("tests should fail", done => {
+		qunit("test/fixtures/failing.html").then(result => {
+			try {
+				assert.deepStrictEqual(
+					result,
+					{ pass: false, results: { passed: 10, failed: 1, total: 11 } },
+					"One test should fail."
+				);
 
-		process.stdout.write = str => {
-			if (/timeout of 1 second/.test(str)) {
-				assert(true);
-				process.stdout.write = out;
-				cb();
+				done();
+			} catch (ex) {
+				done(ex);
 			}
-		};
-	});
-	*/
+		});
+	}); */
 });

@@ -2,63 +2,74 @@ const path = require("path");
 const chalk = require("chalk");
 const istanbul = require("istanbul");
 const fs = require("fs");
+const _ = require("lodash");
 const puppeteer = require("puppeteer");
 
-module.exports = function executeTestRunner(
-	filePath,
-	options = {},
-	callback = () => {}
-) {
-		const runner = "./runner.js";
-		const absolutePath = path.resolve(filePath);
-		const isAbsolutePath = absolutePath.indexOf(filePath) !== -1;
-		const childArgs = [];
+const qunitChromeRunner = (filePath, { coverage = { output: process.cwd(), formats: [] }, verbose = false, timeout = 5000 } = {}) => {
+	const log = (...val) => {
+		if (verbose) {
+			console.log(...val);
+		}
+	};
 
-		//	options:
-		//		`coverage: { output: "...", formats: ["json", ...] }` OR `coverage: false` (does it by default to cwd and json)
-		//		verbose
-		//		chrome-options (similar to phantomjs-options)
-		//		timeout
-		//		page?
+	//	options:
+	//		timeout
+	//		verbose
+	//		`coverage: { output: "...", formats: ["json", ...] }` OR `coverage: false` (does it by default to cwd and json)
 
-		/* console.log(
-		"file:///" + path.join(process.cwd(), filePath).replace(/\\/g, "/") // TODO: format
-	); */
-
-		// Setting our timeout in case everything below takes too long
-		setTimeout(() => {
-			console.log();
-			console.log(chalk.red("TIMEOUT, SUCKER"));
-			console.log();
-			process.exit(1);
-		}, options.timeout || 5000);
-
+	return new Promise((resolve, reject) => {
 		(async () => {
-			console.log("Testing", chalk.magenta(path.relative(process.cwd(), filePath)));
+			// Setting our timeout in case everything below takes too long
+			setTimeout(() => {
+				log();
+				log(chalk.red("Timeout exceeded."));
+				log();
 
-			const browser = await puppeteer.launch({ headless: true }); // defaults to true, not needed
+				reject(new Error("Timeout exceeded"));
+			}, timeout);
+
+			log("Testing", chalk.magenta(path.relative(process.cwd(), filePath)));
+
+			const browser = await puppeteer.launch({
+				headless: true
+			}); // defaults to true, not needed
+
 			const page = await browser.newPage();
 
 			await page.exposeFunction("report", async response => {
-				const coverage = await page.evaluate(() => __coverage__);
+				if (coverage) {
+					const coverageResults = await page.evaluate(() => __coverage__);
+					const collector = new istanbul.Collector();
+					const reporter = new istanbul.Reporter(false, coverage.output);
+					const formats = coverage.formats || [];
 
-				console.dir(response);
+					if (verbose) {
+						formats.push("text-summary");
+					}
 
-				const collector = new istanbul.Collector();
-				const reporter = new istanbul.Reporter(false, options.output);
+					collector.add(coverageResults);
 
-				collector.add(coverage);
+					reporter.addAll(formats);
+					reporter.write(collector, true, () => {
+						log();
+						log(`Coverage written to ${chalk.magenta(coverage.output)}`);
+					});
+				}
 
-				reporter.addAll(["lcovonly", "html", "text-summary", "json"]);
-				reporter.write(collector, true, () => {
-					console.log();
-					console.log(`Coverage written to ${chalk.magenta(options.output)}`);
-				});
-
-				console.log();
-				console.log("Took " + response.runtime + "ms to run " + response.total + " tests. " + response.passed + " passed, " + response.failed + " failed.");
+				log();
+				log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
 				await browser.close();
+
+				resolve({
+					pass: !response.failed,
+					results: _.omit(
+						{
+							...response
+						},
+						"runtime"
+					)
+				});
 			});
 
 			await page.on("load", async () => {
@@ -67,11 +78,11 @@ module.exports = function executeTestRunner(
 				});
 
 				if (qunitMissing) {
-					console.log();
-					console.log(chalk.red("QUnit seems to be missing... :/")); // TODO: message
-					console.log();
+					log();
+					log(chalk.red("Unable to find the QUnit object.")); // TODO: message
+					log();
 
-					process.exit(1);
+					reject(new Error("Unable to find the QUnit object"));
 				}
 
 				await page.evaluate(() => {
@@ -80,8 +91,9 @@ module.exports = function executeTestRunner(
 			});
 
 			// Navigate to our test file
-			await page.goto("file:///" + path
-						.join(process.cwd(), filePath)
-						.replace(/\\/, "/"));
+			await page.goto("file:///" + path.join(process.cwd(), filePath).replace(/\\/g, "/"));
 		})();
-	};
+	});
+};
+
+module.exports = qunitChromeRunner;
