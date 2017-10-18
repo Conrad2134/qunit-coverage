@@ -24,6 +24,26 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		);
 	});
 
+	it("Tests should fail", done => {
+		qunit("test/fixtures/failing.html", {
+			verbose: false,
+			coverage: false
+		}).then(
+			result => {
+				try {
+					assert.deepStrictEqual(result, { pass: false, results: { passed: 10, failed: 1, total: 11 } }, "One test should fail.");
+
+					done();
+				} catch (ex) {
+					done(ex);
+				}
+			},
+			err => {
+				done(err);
+			}
+		);
+	});
+
 	it("Timeout should fail the test runner", done => {
 		qunit("test/fixtures/passing.html", {
 			verbose: false,

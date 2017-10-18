@@ -29,6 +29,7 @@
 		"eslint-config-airbnb-base": "^11.3.2",
 		"eslint-config-prettier": "^2.3.0",
 		"eslint-plugin-import": "^2.7.0",
+		"glob": "^7.1.2",
 		"mkdirp": "^0.5.1",
 		"mocha": "^3.5.0",
 		"qunitjs": "^2.4.0",
