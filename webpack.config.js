@@ -6,17 +6,17 @@ module.exports = {
 	target: "node",
 	entry: "./src/index.js",
 	output: {
-		path: path.resolve(__dirname, "dist"),
+		path: path.resolve(__dirname, "lib"),
 		filename: "index.js",
-		libraryTarget: "umd"
+		libraryTarget: "umd",
 	},
 	module: {
 		rules: [
 			{
 				test: /\.js$/,
 				include: [path.join(__dirname, "src")],
-				use: "babel-loader"
-			}
-		]
-	}
+				use: "babel-loader",
+			},
+		],
+	},
 };

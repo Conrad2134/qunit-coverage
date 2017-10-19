@@ -2,12 +2,12 @@
 	"name": "qunit-coverage",
 	"version": "0.1.0",
 	"description": "A QUnit test runner with Istanbul and headless Chrome.",
-	"main": "dist/index.js",
+	"main": "lib/index.js",
 	"scripts": {
 		"prepublishOnly": "npm run lint && npm test",
 		"build": "webpack --config webpack.config.js",
 		"lint": "eslint src/**/*.js",
-		"clean": "rimraf dist && mkdirp dist",
+		"clean": "rimraf dist && rimraf lib && mkdirp dist && mkdirp lib",
 		"instrument": "webpack --config webpack.config.test.js",
 		"test": "npm run clean && npm run instrument && npm run build && mocha",
 		"test:quick": "mocha test/coverage-parser.js --watch"
