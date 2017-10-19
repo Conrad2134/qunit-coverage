@@ -11,7 +11,11 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		}).then(
 			result => {
 				try {
-					assert.deepStrictEqual(result, { pass: true, results: { passed: 10, failed: 0, total: 10 }, coverage: { branch: 50 } }, "All tests should pass.");
+					assert.deepStrictEqual(
+						result,
+						{ pass: true, results: { passed: 10, failed: 0, total: 10 }, coverage: { branch: 50, function: 100, statement: 80 } },
+						"All tests should pass."
+					);
 
 					done();
 				} catch (ex) {

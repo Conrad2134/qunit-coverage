@@ -9,7 +9,7 @@
 		"clean": "rimraf dist && mkdirp dist",
 		"instrument": "webpack --config webpack.config.test.js",
 		"test": "npm run clean && npm run instrument && npm run build && mocha",
-		"test:quick": "mocha"
+		"test:quick": "mocha test/coverage-parser.js --watch"
 	},
 	"repository": {
 		"type": "git",

@@ -6,7 +6,7 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
 
-const { getBranchCoverage } = require("./coverage-parser");
+const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
 const spreadObjectIf = (condition, element) => (condition ? element : {});
 
@@ -64,6 +64,8 @@ const qunitChromeRunner = (
 					coverageReport = {
 						...coverageReport,
 						branch: getBranchCoverage(coverageResults),
+						function: getFunctionCoverage(coverageResults),
+						statement: getStatementCoverage(coverageResults),
 					};
 
 					collector.add(coverageResults);
