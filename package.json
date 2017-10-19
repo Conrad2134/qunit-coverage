@@ -16,7 +16,7 @@
 		"type": "git",
 		"url": "git+https://github.com/Conrad2134/qunit-coverage.git"
 	},
-	"author": "Connor Uhlman <connor.uhlman@gmail.com>",
+	"author": "Connor Uhlman",
 	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/Conrad2134/qunit-coverage/issues"

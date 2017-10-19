@@ -7,25 +7,92 @@ A QUnit test runner with Istanbul and headless Chrome.
 
 You must be using Node >= 6.
 
-This test runner assumes that your code is already instrumented for Istanbul. TODO: How to instrument with Babel.
+This test runner assumes that your code is already instrumented for Istanbul.
 
 ## Installing
 
-TODO: How to install.
+Via npm:
+
+`npm install qunit-coverage`
 
 ## Usage
 
-TODO: How to use.
+`qunit-coverage` is currently accessible via its Node API. The function takes a file name and options object, and it returns a promise.
+
+```javascript
+const qunit = require("qunit-coverage");
+
+qunit("path-to-file", { /* options */ }).then(/* use results */);
+```
+
+## API
+
+### qunit(path-to-test-fixture[, options]);
+
+Opens a test fixture in headless Chrome, logs test results to the console, and returns a promise that resolves with a results object. The results object follows the below format:
+
+```
+{
+	pass: Boolean,
+	results: { // As numbers
+		passed: Number,
+		failed: Number,
+		total: Number,
+	},
+	coverage: { // If coverage was ran, as percentages
+		branch: Number,
+		function: Number,
+		statement: Number,
+	},
+},
+```
+
+#### options.verbose
+
+Type: `Boolean`<br />
+Default: `false`
+
+Logs more detailed output to the console. 
+
+#### options.timeout
+
+Type: `Number`<br />
+Default: `5000`
+
+Will fail and exit the tests if the timeout limit is exceeded.
+
+#### options.coverage
+
+Type: `Boolean|Object`<br />
+Default: `false`
+
+Configuration options for coverage testing. Passing `false` will prevent coverage testing. Passing `true` will log a text summary report to the console _if_ `options.verbose` is `true`.
+
+#### options.coverage.output
+
+Type: `String`<br />
+Default: `process.cwd()`
+
+Where to output any coverage reports that Istanbul generates. Defaults to the current working directory.
+
+#### options.coverage.formats
+
+Type: `Array<String>`<br />
+Default: `[]`
+
+What formats to output Istanbul coverage reports as. Valid values include `"lcovonly"`, `"json"`, `"html"`, `"text-summary"` and more.
 
 ## Contributing
 
 Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for more information on working with this project.
 
-## TODO
+## Roadmap
 
-* clean up test output
-* see if we can handle errors better
-* support different coverage format output
+* Allow for a glob file input, or an array of files (or globs)
+* Prettier output and more detailed errors / warnings
+* Expose a CLI
+* Document how to instrument with Istanbul
+* Coverage thresholds?
 
 **Inspired by these projects:**
 
