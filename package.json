@@ -4,6 +4,7 @@
 	"description": "A QUnit test runner with Istanbul and headless Chrome.",
 	"main": "dist/index.js",
 	"scripts": {
+		"prepublishOnly": "npm run lint && npm test",
 		"build": "webpack --config webpack.config.js",
 		"lint": "eslint src/**/*.js",
 		"clean": "rimraf dist && mkdirp dist",
