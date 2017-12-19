@@ -58,4 +58,14 @@ describe("qunit-coverage", function qunitCoverageTests() {
 			done();
 		});
 	});
+
+	it("Missing fixture should fail the test runner", done => {
+		qunit("test/fixtures/missing.html", {
+			verbose: false,
+		}).catch(err => {
+			assert.strictEqual(err.message, "Failed to open the test file.", "Error should be thrown");
+
+			done();
+		});
+	});
 });

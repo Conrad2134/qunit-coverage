@@ -113,7 +113,11 @@ const qunitChromeRunner = (
 			});
 
 			// Navigate to our test file
-			await page.goto(`file:///${path.join(process.cwd(), filePath).replace(/\\/g, "/")}`);
+			try {
+				await page.goto(`file:///${path.join(process.cwd(), filePath).replace(/\\/g, "/")}`);
+			} catch (ex) {
+				reject(new Error("Failed to open the test file."));
+			}
 		})();
 	});
 };
