@@ -92,11 +92,12 @@ const qunitChromeRunner = (
 
 				// Group our failures by module / test
 				const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+					// eslint-disable-next-line no-param-reassign
 					obj[key] = _.groupBy(val, failure => failure.name);
 				});
 
 				// Loop through each module
-				_.forIn(grouped, (val, key, obj) => {
+				_.forIn(grouped, (val, key) => {
 					const hasModule = !!key;
 
 					if (hasModule) {
@@ -111,7 +112,7 @@ const qunitChromeRunner = (
 
 						// Print each failure
 						tests.forEach(({ message, expected, actual }) => {
-							log(chalk.red(indent + `  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+							log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
 
 							if (!_.isUndefined(actual)) {
 								log(`${indent}      expected: ${expected}, actual: ${actual}`);
