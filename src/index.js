@@ -70,12 +70,11 @@ const qunitChromeRunner = (
 						formats.push("text-summary");
 					}
 
-					coverageReport = {
-						...coverageReport,
+					coverageReport = Object.assign({}, coverageReport, {
 						branch: getBranchCoverage(coverageResults),
 						function: getFunctionCoverage(coverageResults),
 						statement: getStatementCoverage(coverageResults),
-					};
+					});
 
 					collector.add(coverageResults);
 
@@ -130,19 +129,19 @@ const qunitChromeRunner = (
 				// Get rid of our timeout timer because we're done
 				clearTimeout(timer);
 
-				resolve({
-					pass: !response.failed,
-					results: _.omit(
+				resolve(
+					Object.assign(
+						{},
 						{
-							...response,
+							pass: !response.failed,
+							results: _.omit(Object.assign({}, response), "runtime"),
 						},
-						"runtime"
-					),
-					...spreadObjectIf(coverage, { coverage: coverageReport }),
-				});
+						spreadObjectIf(coverage, { coverage: coverageReport })
+					)
+				);
 			});
 
-			await page.on("load", async () => {
+			page.on("load", async () => {
 				const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
 
 				if (qunitMissing) {
