@@ -48,6 +48,14 @@ const qunitChromeRunner = (
 
 			const browser = await puppeteer.launch();
 			const page = await browser.newPage();
+			const failures = [];
+
+			await page.exposeFunction("logAssertion", async response => {
+				// Don't log if the test passed or it's a todo test
+				if (!response.result && !response.todo) {
+					failures.push(response);
+				}
+			});
 
 			await page.exposeFunction("report", async response => {
 				let coverageReport = {};
@@ -81,6 +89,39 @@ const qunitChromeRunner = (
 				}
 
 				log();
+
+				// Group our failures by module / test
+				const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+					obj[key] = _.groupBy(val, failure => failure.name);
+				});
+
+				// Loop through each module
+				_.forIn(grouped, (val, key, obj) => {
+					const hasModule = !!key;
+
+					if (hasModule) {
+						log(key);
+					}
+
+					// Loop through each test
+					_.forIn(val, (tests, name) => {
+						const indent = hasModule ? "  " : "";
+
+						log(indent + name);
+
+						// Print each failure
+						tests.forEach(({ message, expected, actual }) => {
+							log(chalk.red(indent + `  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+
+							if (!_.isUndefined(actual)) {
+								log(`${indent}      expected: ${expected}, actual: ${actual}`);
+							}
+						});
+
+						log();
+					});
+				});
+
 				log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
 				await browser.close();
@@ -110,6 +151,7 @@ const qunitChromeRunner = (
 
 				await page.evaluate(() => {
 					QUnit.done(window.report);
+					QUnit.log(window.logAssertion);
 				});
 			});
 

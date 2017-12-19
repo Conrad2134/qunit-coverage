@@ -51,12 +51,12 @@ describe("qunit-coverage", function qunitCoverageTests() {
 
 	it("Tests should fail", done => {
 		qunit("test/fixtures/failing.html", {
-			verbose: false,
+			verbose: true,
 			coverage: false,
 		}).then(
 			result => {
 				try {
-					assert.deepStrictEqual(result, { pass: false, results: { passed: 10, failed: 1, total: 11 } }, "One test should fail.");
+					assert.deepStrictEqual(result, { pass: false, results: { passed: 10, failed: 3, total: 13 } }, "Three tests should fail.");
 
 					done();
 				} catch (ex) {

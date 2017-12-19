@@ -7,6 +7,7 @@ test("isEven()", function(assert) {
 	assert.ok(isEven(-4), "So is negative four");
 	assert.ok(!isEven(1), "One is not an even number");
 	assert.ok(!isEven(-7), "Neither is negative seven");
+	assert.ok(!isEven(2), "Two is an even number");
 });
 
 test("multiply()", function(assert) {
@@ -15,5 +16,6 @@ test("multiply()", function(assert) {
 	assert.ok(multiply(1, 3) === 3, "One times three is three");
 	assert.ok(multiply(10, 5) === 50, "Five times ten is fifty");
 	assert.ok(multiply(10, 10) === 100, "Ten times ten is one hundred");
-	assert.ok(multiply(10, 10) === 101, "Ten times ten is one hundred one");
+	assert.ok(multiply(10, 10) === 101, "Ten times ten is one hundred");
+	assert.ok(multiply(10, 10) === 102, "Ten times ten is one hundred");
 });
