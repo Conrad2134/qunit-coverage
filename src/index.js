@@ -35,17 +35,13 @@ const qunitChromeRunner = (
 
 	return new Promise((resolve, reject) => {
 		(async () => {
-			let completed = false;
-
 			// Setting our timeout in case everything below takes too long
-			setTimeout(() => {
-				if (!completed) {
-					log();
-					log(chalk.red("Timeout exceeded."));
-					log();
+			const timer = setTimeout(() => {
+				log();
+				log(chalk.red("Timeout exceeded."));
+				log();
 
-					reject(new Error("Timeout exceeded"));
-				}
+				reject(new Error("Timeout exceeded"));
 			}, timeout || defaults.timeout);
 
 			log("Testing", chalk.magenta(fixturePath));
@@ -130,7 +126,8 @@ const qunitChromeRunner = (
 
 				await browser.close();
 
-				completed = true;
+				// Get rid of our timeout timer because we're done
+				clearTimeout(timer);
 
 				resolve({
 					pass: !response.failed,
