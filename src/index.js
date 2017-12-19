@@ -21,6 +21,7 @@ const qunitChromeRunner = (
 	filePath,
 	{ coverage = { output: defaults.output, formats: defaults.formats }, verbose = defaults.verbose, timeout = defaults.timeout } = {}
 ) => {
+	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
 	const log = (...val) => {
 		if (verbose) {
 			console.log(...val);
@@ -43,7 +44,7 @@ const qunitChromeRunner = (
 				reject(new Error("Timeout exceeded"));
 			}, timeout || defaults.timeout);
 
-			log("Testing", chalk.magenta(path.relative(process.cwd(), filePath)));
+			log("Testing", chalk.magenta(fixturePath));
 
 			const browser = await puppeteer.launch();
 			const page = await browser.newPage();
@@ -114,7 +115,7 @@ const qunitChromeRunner = (
 
 			// Navigate to our test file
 			try {
-				await page.goto(`file:///${path.join(process.cwd(), filePath).replace(/\\/g, "/")}`);
+				await page.goto(fixturePath);
 			} catch (ex) {
 				reject(new Error("Failed to open the test file."));
 			}

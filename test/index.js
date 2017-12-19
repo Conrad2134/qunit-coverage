@@ -1,4 +1,5 @@
 const assert = require("assert");
+const path = require("path");
 const qunit = require("../lib/index");
 
 describe("qunit-coverage", function qunitCoverageTests() {
@@ -16,6 +17,26 @@ describe("qunit-coverage", function qunitCoverageTests() {
 						{ pass: true, results: { passed: 10, failed: 0, total: 10 }, coverage: { branch: 50, function: 100, statement: 80 } },
 						"All tests should pass."
 					);
+
+					done();
+				} catch (ex) {
+					done(ex);
+				}
+			},
+			err => {
+				done(err);
+			}
+		);
+	});
+
+	it("Should handle absolute path to test file", done => {
+		qunit(path.join(__dirname, "fixtures", "passing.html"), {
+			verbose: false,
+			coverage: false,
+		}).then(
+			result => {
+				try {
+					assert.deepStrictEqual(result, { pass: true, results: { passed: 10, failed: 0, total: 10 } }, "All tests should pass.");
 
 					done();
 				} catch (ex) {
