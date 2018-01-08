@@ -124,7 +124,11 @@ const qunitChromeRunner = (
 
 				log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
-				await browser.close();
+				try {
+					await browser.close();
+				} catch (ex) {
+					// Failed to close the browser, handle silently
+				}
 
 				// Get rid of our timeout timer because we're done
 				clearTimeout(timer);
@@ -155,6 +159,7 @@ const qunitChromeRunner = (
 				await page.evaluate(() => {
 					QUnit.done(window.report);
 					QUnit.log(window.logAssertion);
+					QUnit.start();
 				});
 			});
 

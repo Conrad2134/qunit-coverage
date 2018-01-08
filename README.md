@@ -1,6 +1,5 @@
 # qunit-coverage [![Build Status](https://travis-ci.org/Conrad2134/qunit-coverage.svg?branch=master)](https://travis-ci.org/Conrad2134/qunit-coverage) [![Build status](https://ci.appveyor.com/api/projects/status/inywlnt2my7d7okp/branch/master?svg=true)](https://ci.appveyor.com/project/Conrad2134/qunit-coverage/branch/master)
 
-
 A QUnit test runner with Istanbul and headless Chrome.
 
 ## Prerequisites
@@ -22,14 +21,16 @@ Via npm:
 ```javascript
 const qunit = require("qunit-coverage");
 
-qunit("path-to-file", { /* options */ }).then(/* use results */);
+qunit("path-to-file", {
+	/* options */
+}).then(/* use results */);
 ```
 
 ## API
 
 ### qunit(path-to-test-fixture[, options]);
 
-Opens a test fixture in headless Chrome, logs test results to the console, and returns a promise that resolves with a results object. The results object follows the below format:
+Opens a test fixture in headless Chrome, calls `QUnit.start()`, logs test results to the console, and returns a promise that resolves with a results object. The results object follows the below format:
 
 ```
 {
@@ -52,7 +53,7 @@ Opens a test fixture in headless Chrome, logs test results to the console, and r
 Type: `Boolean`<br />
 Default: `false`
 
-Logs more detailed output to the console. 
+Logs more detailed output to the console.
 
 #### options.timeout
 
