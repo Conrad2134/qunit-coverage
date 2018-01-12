@@ -35,20 +35,34 @@ const qunitChromeRunner = (
 
 	return new Promise((resolve, reject) => {
 		(async () => {
+			const closeBrowser = async (browser, rejection) => {
+				try {
+					await browser.close();
+				} catch (ex) {
+					log();
+					log(chalk.yellow("Failed to close Chromium."));
+					log();
+				}
+
+				if (rejection) {
+					reject(rejection);
+				}
+			};
+
+			log("Testing", chalk.magenta(fixturePath));
+
+			const browser = await puppeteer.launch({ headless: false });
+			const page = await browser.newPage();
+			const failures = [];
+
 			// Setting our timeout in case everything below takes too long
 			const timer = setTimeout(() => {
 				log();
 				log(chalk.red("Timeout exceeded."));
 				log();
 
-				reject(new Error("Timeout exceeded"));
+				closeBrowser(browser, new Error("Timeout exceeded"));
 			}, timeout || defaults.timeout);
-
-			log("Testing", chalk.magenta(fixturePath));
-
-			const browser = await puppeteer.launch();
-			const page = await browser.newPage();
-			const failures = [];
 
 			await page.exposeFunction("logAssertion", async response => {
 				// Don't log if the test passed or it's a todo test
@@ -124,11 +138,7 @@ const qunitChromeRunner = (
 
 				log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
-				try {
-					await browser.close();
-				} catch (ex) {
-					// Failed to close the browser, handle silently
-				}
+				await closeBrowser(browser);
 
 				// Get rid of our timeout timer because we're done
 				clearTimeout(timer);
@@ -153,7 +163,7 @@ const qunitChromeRunner = (
 					log(chalk.red("Unable to find the QUnit object."));
 					log();
 
-					reject(new Error("Unable to find the QUnit object"));
+					await closeBrowser(browser, new Error("Unable to find the QUnit object"));
 				}
 
 				await page.evaluate(() => {
@@ -167,7 +177,11 @@ const qunitChromeRunner = (
 			try {
 				await page.goto(fixturePath);
 			} catch (ex) {
-				reject(new Error("Failed to open the test file."));
+				log();
+				log(chalk.red("Failed to open the test file."));
+				log();
+
+				await closeBrowser(browser, new Error("Failed to open the test file."));
 			}
 		})();
 	});
