@@ -14,7 +14,7 @@ const defaults = {
 	timeout: 10000,
 	formats: [],
 	output: process.cwd(),
-	verbose: false,
+	verbose: false
 };
 
 const qunitChromeRunner = (
@@ -51,7 +51,7 @@ const qunitChromeRunner = (
 
 			log("Testing", chalk.magenta(fixturePath));
 
-			const browser = await puppeteer.launch({ headless: false });
+			const browser = await puppeteer.launch();
 			const page = await browser.newPage();
 			const failures = [];
 
@@ -87,7 +87,7 @@ const qunitChromeRunner = (
 					coverageReport = Object.assign({}, coverageReport, {
 						branch: getBranchCoverage(coverageResults),
 						function: getFunctionCoverage(coverageResults),
-						statement: getStatementCoverage(coverageResults),
+						statement: getStatementCoverage(coverageResults)
 					});
 
 					collector.add(coverageResults);
@@ -148,7 +148,7 @@ const qunitChromeRunner = (
 						{},
 						{
 							pass: !response.failed,
-							results: _.omit(Object.assign({}, response), "runtime"),
+							results: _.omit(Object.assign({}, response), "runtime")
 						},
 						spreadObjectIf(coverage, { coverage: coverageReport })
 					)
