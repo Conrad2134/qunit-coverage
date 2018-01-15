@@ -64,113 +64,129 @@ const qunitChromeRunner = (
 				closeBrowser(browser, new Error("Timeout exceeded"));
 			}, timeout || defaults.timeout);
 
-			await page.exposeFunction("logAssertion", async response => {
-				// Don't log if the test passed or it's a todo test
-				if (!response.result && !response.todo) {
-					failures.push(response);
-				}
-			});
-
-			await page.exposeFunction("report", async response => {
-				let coverageReport = {};
-
-				if (coverage) {
-					const coverageResults = await page.evaluate(() => __coverage__);
-					const collector = new istanbul.Collector();
-					const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
-					const formats = coverage.formats || defaults.formats;
-
-					if (verbose && !formats.includes("text-summary")) {
-						formats.push("text-summary");
+			try {
+				await page.exposeFunction("logAssertion", async response => {
+					// Don't log if the test passed or it's a todo test
+					if (!response.result && !response.todo) {
+						failures.push(response);
 					}
-
-					coverageReport = Object.assign({}, coverageReport, {
-						branch: getBranchCoverage(coverageResults),
-						function: getFunctionCoverage(coverageResults),
-						statement: getStatementCoverage(coverageResults)
-					});
-
-					collector.add(coverageResults);
-
-					reporter.addAll(formats);
-					reporter.write(collector, true, () => {
-						if (!formats.includes("text-summary") || formats.length !== 1) {
-							log();
-							log(`Coverage written to ${chalk.magenta(coverage.output)}`);
-						}
-					});
-				}
-
-				log();
-
-				// Group our failures by module / test
-				const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
-					// eslint-disable-next-line no-param-reassign
-					obj[key] = _.groupBy(val, failure => failure.name);
 				});
+			} catch (ex) {
+				// Silently handle, for now.
+			}
 
-				// Loop through each module
-				_.forIn(grouped, (val, key) => {
-					const hasModule = !!key;
+			try {
+				await page.exposeFunction("report", async response => {
+					let coverageReport = {};
 
-					if (hasModule) {
-						log(key);
-					}
+					if (coverage) {
+						const coverageResults = await page.evaluate(() => __coverage__);
+						const collector = new istanbul.Collector();
+						const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
+						const formats = coverage.formats || defaults.formats;
 
-					// Loop through each test
-					_.forIn(val, (tests, name) => {
-						const indent = hasModule ? "  " : "";
+						if (verbose && !formats.includes("text-summary")) {
+							formats.push("text-summary");
+						}
 
-						log(indent + name);
-
-						// Print each failure
-						tests.forEach(({ message, expected, actual }) => {
-							log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
-
-							if (!_.isUndefined(actual)) {
-								log(`${indent}      expected: ${expected}, actual: ${actual}`);
-							}
+						coverageReport = Object.assign({}, coverageReport, {
+							branch: getBranchCoverage(coverageResults),
+							function: getFunctionCoverage(coverageResults),
+							statement: getStatementCoverage(coverageResults)
 						});
 
-						log();
+						collector.add(coverageResults);
+
+						reporter.addAll(formats);
+						reporter.write(collector, true, () => {
+							if (!formats.includes("text-summary") || formats.length !== 1) {
+								log();
+								log(`Coverage written to ${chalk.magenta(coverage.output)}`);
+							}
+						});
+					}
+
+					log();
+
+					// Group our failures by module / test
+					const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+						// eslint-disable-next-line no-param-reassign
+						obj[key] = _.groupBy(val, failure => failure.name);
 					});
+
+					// Loop through each module
+					_.forIn(grouped, (val, key) => {
+						const hasModule = !!key;
+
+						if (hasModule) {
+							log(key);
+						}
+
+						// Loop through each test
+						_.forIn(val, (tests, name) => {
+							const indent = hasModule ? "  " : "";
+
+							log(indent + name);
+
+							// Print each failure
+							tests.forEach(({ message, expected, actual }) => {
+								log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+
+								if (!_.isUndefined(actual)) {
+									log(`${indent}      expected: ${expected}, actual: ${actual}`);
+								}
+							});
+
+							log();
+						});
+					});
+
+					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
+
+					await closeBrowser(browser);
+
+					// Get rid of our timeout timer because we're done
+					clearTimeout(timer);
+
+					resolve(
+						Object.assign(
+							{},
+							{
+								pass: !response.failed,
+								results: _.omit(Object.assign({}, response), "runtime")
+							},
+							spreadObjectIf(coverage, { coverage: coverageReport })
+						)
+					);
 				});
-
-				log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
-
-				await closeBrowser(browser);
-
-				// Get rid of our timeout timer because we're done
-				clearTimeout(timer);
-
-				resolve(
-					Object.assign(
-						{},
-						{
-							pass: !response.failed,
-							results: _.omit(Object.assign({}, response), "runtime")
-						},
-						spreadObjectIf(coverage, { coverage: coverageReport })
-					)
-				);
-			});
+			} catch (ex) {
+				// silently handle, for now
+			}
 
 			page.on("load", async () => {
-				const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
+				try {
+					const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
 
-				if (qunitMissing) {
-					log();
-					log(chalk.red("Unable to find the QUnit object."));
-					log();
+					if (qunitMissing) {
+						log();
+						log(chalk.red("Unable to find the QUnit object."));
+						log();
 
-					await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+						await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+					}
+				} catch (ex) {
+					// silently handle, for now
 				}
 
-				await page.evaluate(() => {
-					QUnit.done(window.report);
-					QUnit.log(window.logAssertion);
-					QUnit.start();
-				});
+				try {
+					await page.evaluate(() => {
+						QUnit.done(window.report);
+						QUnit.log(window.logAssertion);
+						QUnit.start();
+					});
+				} catch (ex) {
+					// silently handle, for now.
+				}
 			});
 
 			// Navigate to our test file
