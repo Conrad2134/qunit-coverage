@@ -7,6 +7,7 @@
   "scripts": {
     "prepublishOnly": "npm run lint && npm test",
     "build": "microbundle --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
+    "build:watch": "microbundle watch --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
     "lint": "eslint src/**/*.js",
     "clean": "rimraf dist && rimraf lib && mkdirp dist && mkdirp lib",
     "instrument": "webpack",
