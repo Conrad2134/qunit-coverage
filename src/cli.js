@@ -25,6 +25,7 @@ prog
 
 			process.exit(results.pass ? 0 : 1);
 		} catch (ex) {
+			// TODO: Log the exception?
 			process.exit(1);
 		}
 	});
