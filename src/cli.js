@@ -1,11 +1,12 @@
 const path = require("path");
 const sade = require("sade");
-const prog = sade("qunit-coverage");
 const qunit = require("./index");
 
-prog.version("0.4.0"); // TODO: How to keep this up to date?
+const program = sade("qunit-coverage");
 
-prog
+program.version("0.4.0"); // TODO: How to keep this up to date?
+
+program
 	.command("test <file>", "", { default: true })
 	.option("-c, --coverage", "Evaulate Istanbul coverage", true)
 	.option("-v, --verbose", "Perform additional logging", true)
@@ -30,4 +31,4 @@ prog
 		}
 	});
 
-prog.parse(process.argv);
+program.parse(process.argv);
