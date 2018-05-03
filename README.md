@@ -62,6 +62,13 @@ Default: `5000`
 
 Will fail and exit the tests if the timeout limit is exceeded.
 
+#### options.puppeteerOptions
+
+Type: `Object`<br />
+Default: `{}`
+
+Passes options to `puppeteer.launch()`. For a list of valid options, see the [puppeteer documentation](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerlaunchoptions).
+
 #### options.coverage
 
 Type: `Boolean|Object`<br />

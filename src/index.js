@@ -14,12 +14,18 @@ const defaults = {
 	timeout: 10000,
 	formats: [],
 	output: process.cwd(),
-	verbose: false
+	puppeteerOptions: {},
+	verbose: false,
 };
 
 const qunitChromeRunner = (
 	filePath,
-	{ coverage = { output: defaults.output, formats: defaults.formats }, verbose = defaults.verbose, timeout = defaults.timeout } = {}
+	{
+		coverage = { output: defaults.output, formats: defaults.formats },
+		verbose = defaults.verbose,
+		timeout = defaults.timeout,
+		puppeteerOptions = defaults.puppeteerOptions,
+	} = {}
 ) => {
 	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
 	const log = (...val) => {
@@ -31,6 +37,7 @@ const qunitChromeRunner = (
 	//	options:
 	//		timeout
 	//		verbose
+	//		puppeteerOptions: { /* options to pass to puppeteer */ }
 	//		`coverage: { output: "...", formats: ["json", ...] }` OR `coverage: false`
 
 	return new Promise((resolve, reject) => {
@@ -51,7 +58,7 @@ const qunitChromeRunner = (
 
 			log("Testing", chalk.magenta(fixturePath));
 
-			const browser = await puppeteer.launch();
+			const browser = await puppeteer.launch(puppeteerOptions);
 			const page = await browser.newPage();
 			const failures = [];
 
@@ -92,7 +99,7 @@ const qunitChromeRunner = (
 						coverageReport = Object.assign({}, coverageReport, {
 							branch: getBranchCoverage(coverageResults),
 							function: getFunctionCoverage(coverageResults),
-							statement: getStatementCoverage(coverageResults)
+							statement: getStatementCoverage(coverageResults),
 						});
 
 						collector.add(coverageResults);
@@ -151,11 +158,10 @@ const qunitChromeRunner = (
 					resolve(
 						Object.assign(
 							{},
-							{
-								pass: !response.failed,
-								results: _.omit(Object.assign({}, response), "runtime")
-							},
-							spreadObjectIf(coverage, { coverage: coverageReport })
+							{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
+							spreadObjectIf(coverage, {
+								coverage: coverageReport,
+							})
 						)
 					);
 				});

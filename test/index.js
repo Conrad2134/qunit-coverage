@@ -8,7 +8,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 	it("Tests should pass", done => {
 		qunit("test/fixtures/passing.html", {
 			verbose: true,
-			coverage: true
+			coverage: true,
 		}).then(
 			result => {
 				try {
@@ -32,7 +32,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 	it("Should handle absolute path to test file", done => {
 		qunit(path.join(__dirname, "fixtures", "passing.html"), {
 			verbose: false,
-			coverage: false
+			coverage: false,
 		}).then(
 			result => {
 				try {
@@ -52,7 +52,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 	it("Tests should fail", done => {
 		qunit("test/fixtures/failing.html", {
 			verbose: true,
-			coverage: false
+			coverage: false,
 		}).then(
 			result => {
 				try {
@@ -72,7 +72,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 	it("Timeout should fail the test runner", done => {
 		qunit("test/fixtures/passing.html", {
 			verbose: false,
-			timeout: 1
+			timeout: 1,
 		}).catch(err => {
 			assert.strictEqual(err.message, "Timeout exceeded", "Error should be thrown");
 
@@ -82,7 +82,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 
 	it("Missing fixture should fail the test runner", done => {
 		qunit("test/fixtures/missing.html", {
-			verbose: false
+			verbose: false,
 		}).catch(err => {
 			assert.strictEqual(err.message, "Failed to open the test file.", "Error should be thrown");
 
