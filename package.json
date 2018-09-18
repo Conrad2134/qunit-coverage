@@ -1,56 +1,53 @@
 {
-	"name": "qunit-coverage",
-	"version": "0.7.0",
-	"description": "A QUnit test runner with Istanbul and headless Chrome.",
-	"main": "lib/index.js",
-	"bin": "lib/cli.js",
-	"scripts": {
-		"prepublishOnly": "npm run lint && npm test",
-		"build":
-			"microbundle --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
-		"build:watch":
-			"microbundle watch --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
-		"lint": "eslint src/**/*.js",
-		"lint:fix": "npm run lint -- --fix",
-		"clean": "rimraf dist && rimraf lib && mkdirp dist && mkdirp lib",
-		"instrument": "webpack",
-		"test":
-			"npm run clean && npm run instrument && npm run build && mocha && npm run test:cli",
-		"test:cli": "node lib/cli.js test/fixtures/passing.html"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Conrad2134/qunit-coverage.git"
-	},
-	"author": "Connor Uhlman",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/Conrad2134/qunit-coverage/issues"
-	},
-	"homepage": "https://github.com/Conrad2134/qunit-coverage#readme",
-	"devDependencies": {
-		"babel-core": "^6.26.0",
-		"babel-eslint": "^7.2.3",
-		"babel-loader": "^7.1.2",
-		"babel-plugin-istanbul": "^4.1.4",
-		"babel-preset-env": "^1.6.0",
-		"eslint": "^4.5.0",
-		"eslint-config-airbnb-base": "^11.3.2",
-		"eslint-config-prettier": "^2.3.0",
-		"eslint-plugin-import": "^2.7.0",
-		"microbundle": "^0.3.1",
-		"mkdirp": "^0.5.1",
-		"mocha": "^3.5.0",
-		"qunitjs": "^2.4.0",
-		"rimraf": "^2.6.1",
-		"strip-ansi": "^4.0.0",
-		"webpack": "^3.5.5"
-	},
-	"dependencies": {
-		"chalk": "^2.1.0",
-		"istanbul": "^0.4.5",
-		"lodash": "^4.17.4",
-		"puppeteer": "^0.12.0",
-		"sade": "^1.3.1"
-	}
+  "name": "qunit-coverage",
+  "version": "0.7.0",
+  "description": "A QUnit test runner with Istanbul and headless Chrome.",
+  "main": "lib/index.js",
+  "bin": "lib/cli.js",
+  "scripts": {
+    "prepublishOnly": "npm run lint && npm test",
+    "build": "microbundle --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
+    "build:watch": "microbundle watch --entry src/index.js --entry src/coverage-parser.js --entry src/cli.js --format cjs",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "npm run lint -- --fix",
+    "clean": "rimraf dist && rimraf lib && mkdirp dist && mkdirp lib",
+    "instrument": "webpack",
+    "test": "npm run clean && npm run instrument && npm run build && mocha && npm run test:cli",
+    "test:cli": "node lib/cli.js test/fixtures/passing.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Conrad2134/qunit-coverage.git"
+  },
+  "author": "Connor Uhlman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Conrad2134/qunit-coverage/issues"
+  },
+  "homepage": "https://github.com/Conrad2134/qunit-coverage#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-istanbul": "^4.1.4",
+    "babel-preset-env": "^1.6.0",
+    "eslint": "^4.5.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-import": "^2.7.0",
+    "istanbul": "^0.4.5",
+    "microbundle": "^0.6.0",
+    "mkdirp": "^0.5.1",
+    "mocha": "^5.2.0",
+    "qunitjs": "^2.4.0",
+    "rimraf": "^2.6.1",
+    "strip-ansi": "^4.0.0",
+    "webpack": "^3.5.5"
+  },
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "lodash": "^4.17.11",
+    "puppeteer": "^0.12.0",
+    "sade": "^1.4.1"
+  }
 }

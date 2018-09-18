@@ -49,10 +49,10 @@ const qunitChromeRunner = (
 					log();
 					log(chalk.yellow("Failed to close Chromium."));
 					log();
-				}
-
-				if (rejection) {
-					reject(rejection);
+				} finally {
+					if (rejection) {
+						reject(rejection);
+					}
 				}
 			};
 
@@ -150,20 +150,24 @@ const qunitChromeRunner = (
 
 					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
-					await closeBrowser(browser);
+					try {
+						await closeBrowser(browser);
 
-					// Get rid of our timeout timer because we're done
-					clearTimeout(timer);
+						// Get rid of our timeout timer because we're done
+						clearTimeout(timer);
 
-					resolve(
-						Object.assign(
-							{},
-							{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
-							spreadObjectIf(coverage, {
-								coverage: coverageReport,
-							})
-						)
-					);
+						resolve(
+							Object.assign(
+								{},
+								{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
+								spreadObjectIf(coverage, {
+									coverage: coverageReport,
+								})
+							)
+						);
+					} catch (ex) {
+						// This might happen if the timeout exceeded and we already closed.
+					}
 				});
 			} catch (ex) {
 				// silently handle, for now

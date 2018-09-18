@@ -3,7 +3,7 @@ const path = require("path");
 const qunit = require("../lib/index");
 
 describe("qunit-coverage", function qunitCoverageTests() {
-	this.timeout(10000);
+	this.timeout(15000);
 
 	it("Tests should pass", done => {
 		qunit("test/fixtures/passing.html", {
@@ -71,8 +71,8 @@ describe("qunit-coverage", function qunitCoverageTests() {
 
 	it("Timeout should fail the test runner", done => {
 		qunit("test/fixtures/passing.html", {
-			verbose: false,
-			timeout: 1,
+			verbose: true,
+			timeout: 100,
 		}).catch(err => {
 			assert.strictEqual(err.message, "Timeout exceeded", "Error should be thrown");
 
