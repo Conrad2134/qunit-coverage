@@ -9,6 +9,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		qunit("test/fixtures/passing.html", {
 			verbose: true,
 			coverage: true,
+			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
 		}).then(
 			result => {
 				try {
@@ -33,6 +34,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		qunit(path.join(__dirname, "fixtures", "passing.html"), {
 			verbose: false,
 			coverage: false,
+			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
 		}).then(
 			result => {
 				try {
@@ -53,6 +55,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		qunit("test/fixtures/failing.html", {
 			verbose: true,
 			coverage: false,
+			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
 		}).then(
 			result => {
 				try {
@@ -73,6 +76,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		qunit("test/fixtures/passing.html", {
 			verbose: true,
 			timeout: 100,
+			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
 		}).catch(err => {
 			assert.strictEqual(err.message, "Timeout exceeded", "Error should be thrown");
 
@@ -81,9 +85,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 	});
 
 	it("Missing fixture should fail the test runner", done => {
-		qunit("test/fixtures/missing.html", {
-			verbose: false,
-		}).catch(err => {
+		qunit("test/fixtures/missing.html", { verbose: false, puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] } }).catch(err => {
 			assert.strictEqual(err.message, "Failed to open the test file.", "Error should be thrown");
 
 			done();
