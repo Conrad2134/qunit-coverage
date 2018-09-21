@@ -35,7 +35,6 @@
     "eslint-config-airbnb-base": "^11.3.2",
     "eslint-config-prettier": "^2.3.0",
     "eslint-plugin-import": "^2.7.0",
-    "istanbul": "^0.4.5",
     "microbundle": "^0.6.0",
     "mkdirp": "^0.5.1",
     "mocha": "^5.2.0",
@@ -46,6 +45,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.1",
+    "istanbul": "^0.4.5",
     "lodash": "^4.17.11",
     "puppeteer": "^1.8.0",
     "sade": "^1.4.1"
