@@ -6,7 +6,11 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
 
-const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
+const {
+	getBranchCoverage,
+	getFunctionCoverage,
+	getStatementCoverage,
+} = require("./coverage-parser");
 
 const spreadObjectIf = (condition, element) => (condition ? element : {});
 
@@ -25,9 +29,11 @@ const qunitChromeRunner = (
 		verbose = defaults.verbose,
 		timeout = defaults.timeout,
 		puppeteerOptions = defaults.puppeteerOptions,
-	} = {}
+	} = {},
 ) => {
-	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
+	const fixturePath = `file:///${path
+		.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath)
+		.replace(/\\/g, "/")}`;
 	const log = (...val) => {
 		if (verbose) {
 			console.log(...val);
@@ -89,7 +95,10 @@ const qunitChromeRunner = (
 					if (coverage) {
 						const coverageResults = await page.evaluate(() => __coverage__);
 						const collector = new istanbul.Collector();
-						const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
+						const reporter = new istanbul.Reporter(
+							false,
+							coverage.output || defaults.output,
+						);
 						const formats = coverage.formats || defaults.formats;
 
 						if (verbose && !formats.includes("text-summary")) {
@@ -116,10 +125,13 @@ const qunitChromeRunner = (
 					log();
 
 					// Group our failures by module / test
-					const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
-						// eslint-disable-next-line no-param-reassign
-						obj[key] = _.groupBy(val, failure => failure.name);
-					});
+					const grouped = _.forIn(
+						_.groupBy(failures, failure => failure.module),
+						(val, key, obj) => {
+							// eslint-disable-next-line no-param-reassign
+							obj[key] = _.groupBy(val, failure => failure.name);
+						},
+					);
 
 					// Loop through each module
 					_.forIn(grouped, (val, key) => {
@@ -137,10 +149,18 @@ const qunitChromeRunner = (
 
 							// Print each failure
 							tests.forEach(({ message, expected, actual }) => {
-								log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+								log(
+									chalk.red(
+										`${indent}  \u2717 ${
+											message ? `${chalk.gray(message)}` : "Test failure"
+										}`,
+									),
+								);
 
 								if (!_.isUndefined(actual)) {
-									log(`${indent}      expected: ${expected}, actual: ${actual}`);
+									log(
+										`${indent}      expected: ${expected}, actual: ${actual}`,
+									);
 								}
 							});
 
@@ -148,7 +168,13 @@ const qunitChromeRunner = (
 						});
 					});
 
-					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
+					log(
+						chalk.blue(
+							`Took ${response.runtime}ms to run ${response.total} tests. ${
+								response.passed
+							} passed, ${response.failed} failed.`,
+						),
+					);
 
 					try {
 						await closeBrowser(browser);
@@ -159,11 +185,14 @@ const qunitChromeRunner = (
 						resolve(
 							Object.assign(
 								{},
-								{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
+								{
+									pass: !response.failed,
+									results: _.omit(Object.assign({}, response), "runtime"),
+								},
 								spreadObjectIf(coverage, {
 									coverage: coverageReport,
-								})
-							)
+								}),
+							),
 						);
 					} catch (ex) {
 						// This might happen if the timeout exceeded and we already closed.
@@ -175,14 +204,19 @@ const qunitChromeRunner = (
 
 			page.on("load", async () => {
 				try {
-					const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
+					const qunitMissing = await page.evaluate(
+						() => typeof QUnit === "undefined" || !QUnit,
+					);
 
 					if (qunitMissing) {
 						log();
 						log(chalk.red("Unable to find the QUnit object."));
 						log();
 
-						await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+						await closeBrowser(
+							browser,
+							new Error("Unable to find the QUnit object"),
+						);
 					}
 				} catch (ex) {
 					// silently handle, for now

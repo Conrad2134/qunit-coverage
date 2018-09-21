@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+
 const _ = require("lodash");
 const $ = require("lodash/fp");
 
@@ -13,7 +15,13 @@ const getCoverage = (type, coverage) => {
 		.map($.property(type))
 		.map(_.values)
 		.flattenDeep()
-		.reduce((result, coverageType) => ({ total: ++result.total, covered: coverageType ? ++result.covered : result.covered }), { total: 0, covered: 0 }) // eslint-disable-line no-param-reassign
+		.reduce(
+			(result, coverageType) => ({
+				total: ++result.total,
+				covered: coverageType ? ++result.covered : result.covered,
+			}),
+			{ total: 0, covered: 0 },
+		) // eslint-disable-line no-param-reassign
 		.value();
 
 	return calculatePercentage(results.covered, results.total);

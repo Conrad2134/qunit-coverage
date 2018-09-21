@@ -15,8 +15,12 @@ describe("qunit-coverage", function qunitCoverageTests() {
 				try {
 					assert.deepStrictEqual(
 						result,
-						{ pass: true, results: { passed: 10, failed: 0, total: 10 }, coverage: { branch: 50, function: 100, statement: 80 } },
-						"All tests should pass."
+						{
+							pass: true,
+							results: { passed: 10, failed: 0, total: 10 },
+							coverage: { branch: 50, function: 100, statement: 80 },
+						},
+						"All tests should pass.",
 					);
 
 					done();
@@ -26,7 +30,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 			},
 			err => {
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -38,7 +42,11 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		}).then(
 			result => {
 				try {
-					assert.deepStrictEqual(result, { pass: true, results: { passed: 10, failed: 0, total: 10 } }, "All tests should pass.");
+					assert.deepStrictEqual(
+						result,
+						{ pass: true, results: { passed: 10, failed: 0, total: 10 } },
+						"All tests should pass.",
+					);
 
 					done();
 				} catch (ex) {
@@ -47,7 +55,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 			},
 			err => {
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -59,7 +67,11 @@ describe("qunit-coverage", function qunitCoverageTests() {
 		}).then(
 			result => {
 				try {
-					assert.deepStrictEqual(result, { pass: false, results: { passed: 10, failed: 3, total: 13 } }, "Three tests should fail.");
+					assert.deepStrictEqual(
+						result,
+						{ pass: false, results: { passed: 10, failed: 3, total: 13 } },
+						"Three tests should fail.",
+					);
 
 					done();
 				} catch (ex) {
@@ -68,7 +80,7 @@ describe("qunit-coverage", function qunitCoverageTests() {
 			},
 			err => {
 				done(err);
-			}
+			},
 		);
 	});
 
@@ -78,15 +90,26 @@ describe("qunit-coverage", function qunitCoverageTests() {
 			timeout: 100,
 			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
 		}).catch(err => {
-			assert.strictEqual(err.message, "Timeout exceeded", "Error should be thrown");
+			assert.strictEqual(
+				err.message,
+				"Timeout exceeded",
+				"Error should be thrown",
+			);
 
 			done();
 		});
 	});
 
 	it("Missing fixture should fail the test runner", done => {
-		qunit("test/fixtures/missing.html", { verbose: false, puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] } }).catch(err => {
-			assert.strictEqual(err.message, "Failed to open the test file.", "Error should be thrown");
+		qunit("test/fixtures/missing.html", {
+			verbose: false,
+			puppeteerOptions: { args: ["--disable-setuid-sandbox", "--no-sandbox"] },
+		}).catch(err => {
+			assert.strictEqual(
+				err.message,
+				"Failed to open the test file.",
+				"Error should be thrown",
+			);
 
 			done();
 		});

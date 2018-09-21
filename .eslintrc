@@ -16,6 +16,7 @@
 		"no-plusplus": "off",
 		"no-console": "off",
 		"comma-dangle": "off",
-		"max-len": "off"
+		"max-len": "off",
+		"import/no-extraneous-dependencies": "off"
 	}
 }
