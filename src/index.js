@@ -182,31 +182,35 @@ const qunitChromeRunner = (
 				// silently handle, for now
 			}
 
-			page.on("load", async () => {
-				try {
-					const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
+			try {
+				page.on("load", async () => {
+					try {
+						const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
 
-					if (qunitMissing) {
-						log();
-						log(chalk.red("Unable to find the QUnit object."));
-						log();
+						if (qunitMissing) {
+							log();
+							log(chalk.red("Unable to find the QUnit object."));
+							log();
 
-						await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+							await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+						}
+					} catch (ex) {
+						// silently handle, for now
 					}
-				} catch (ex) {
-					// silently handle, for now
-				}
 
-				try {
-					await page.evaluate(() => {
-						QUnit.done(window.report);
-						QUnit.log(window.logAssertion);
-						QUnit.start();
-					});
-				} catch (ex) {
-					// silently handle, for now.
-				}
-			});
+					try {
+						await page.evaluate(() => {
+							QUnit.done(window.report);
+							QUnit.log(window.logAssertion);
+							QUnit.start();
+						});
+					} catch (ex) {
+						// silently handle, for now.
+					}
+				});
+			} catch (ex) {
+				// silently handle, for now
+			}
 
 			// Navigate to our test file
 			try {
