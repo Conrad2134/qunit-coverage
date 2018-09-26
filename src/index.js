@@ -5,7 +5,6 @@ const istanbul = require("istanbul");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
-const child_process = require("child_process");
 
 const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
@@ -46,7 +45,7 @@ const qunitChromeRunner = (
 			const closeBrowser = async (browser, rejection) => {
 				try {
 					browser.on("disconnected", () => {
-						setTimeout(function killProcess() {
+						setTimeout(() => {
 							const { pid } = browser.process();
 							log(`Browser disconnected... PID: ${pid}`);
 							try {
