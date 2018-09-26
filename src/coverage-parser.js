@@ -26,5 +26,5 @@ const getStatementCoverage = coverage => getCoverage("s", coverage);
 module.exports = {
 	getBranchCoverage,
 	getFunctionCoverage,
-	getStatementCoverage,
+	getStatementCoverage
 };

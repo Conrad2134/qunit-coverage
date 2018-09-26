@@ -15,7 +15,7 @@ const defaults = {
 	formats: [],
 	output: process.cwd(),
 	puppeteerOptions: {},
-	verbose: false,
+	verbose: false
 };
 
 const qunitChromeRunner = (
@@ -24,7 +24,7 @@ const qunitChromeRunner = (
 		coverage = { output: defaults.output, formats: defaults.formats },
 		verbose = defaults.verbose,
 		timeout = defaults.timeout,
-		puppeteerOptions = defaults.puppeteerOptions,
+		puppeteerOptions = defaults.puppeteerOptions
 	} = {}
 ) => {
 	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
@@ -99,7 +99,7 @@ const qunitChromeRunner = (
 						coverageReport = Object.assign({}, coverageReport, {
 							branch: getBranchCoverage(coverageResults),
 							function: getFunctionCoverage(coverageResults),
-							statement: getStatementCoverage(coverageResults),
+							statement: getStatementCoverage(coverageResults)
 						});
 
 						collector.add(coverageResults);
@@ -161,7 +161,7 @@ const qunitChromeRunner = (
 								{},
 								{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
 								spreadObjectIf(coverage, {
-									coverage: coverageReport,
+									coverage: coverageReport
 								})
 							)
 						);
