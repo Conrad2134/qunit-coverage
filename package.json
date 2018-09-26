@@ -1,6 +1,6 @@
 {
   "name": "qunit-coverage",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "A QUnit test runner with Istanbul and headless Chrome.",
   "main": "lib/index.js",
   "bin": "lib/cli.js",
