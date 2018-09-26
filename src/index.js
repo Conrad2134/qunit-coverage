@@ -5,6 +5,7 @@ const istanbul = require("istanbul");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
+const child_process = require("child_process");
 
 const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
@@ -43,17 +44,25 @@ const qunitChromeRunner = (
 	return new Promise((resolve, reject) => {
 		(async () => {
 			const closeBrowser = async (browser, rejection) => {
-				try {
-					await browser.close();
-				} catch (ex) {
-					log();
-					log(chalk.yellow("Failed to close Chromium."));
-					log();
-				} finally {
-					if (rejection) {
-						reject(rejection);
-					}
-				}
+				browser.on("disconnected", () => {
+					setTimeout(function killProcess() {
+						const { pid } = browser.process();
+						log(`Browser disconnected... PID: ${pid}`);
+						try {
+							process.kill(pid);
+						} catch (ex) {
+							if (ex) {
+								log(`Failed to kill process: ${ex}`);
+							}
+						} finally {
+							if (rejection) {
+								reject(rejection);
+							}
+						}
+					}, 100);
+				});
+
+				browser.disconnect();
 			};
 
 			log("Testing", chalk.magenta(fixturePath));
