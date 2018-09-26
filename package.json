@@ -13,7 +13,7 @@
     "clean": "rimraf dist && rimraf lib && mkdirp dist && mkdirp lib",
     "instrument": "webpack",
     "test": "npm run clean && npm run instrument && npm run build && mocha && npm run test:cli",
-    "test:cli": "node lib/cli.js test/fixtures/passing.html"
+    "test:cli": "node lib/cli.js test/fixtures/passing.html --verbose --puppeteer-options \"{ \\\"args\\\": [\\\"--disable-setuid-sandbox\\\", \\\"--no-sandbox\\\"] }\""
   },
   "repository": {
     "type": "git",
