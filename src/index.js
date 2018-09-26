@@ -44,25 +44,29 @@ const qunitChromeRunner = (
 	return new Promise((resolve, reject) => {
 		(async () => {
 			const closeBrowser = async (browser, rejection) => {
-				browser.on("disconnected", () => {
-					setTimeout(function killProcess() {
-						const { pid } = browser.process();
-						log(`Browser disconnected... PID: ${pid}`);
-						try {
-							process.kill(pid);
-						} catch (ex) {
-							if (ex) {
-								log(`Failed to kill process: ${ex}`);
+				try {
+					browser.on("disconnected", () => {
+						setTimeout(function killProcess() {
+							const { pid } = browser.process();
+							log(`Browser disconnected... PID: ${pid}`);
+							try {
+								process.kill(pid);
+							} catch (ex) {
+								if (ex) {
+									log(`Failed to kill process: ${ex}`);
+								}
+							} finally {
+								if (rejection) {
+									reject(rejection);
+								}
 							}
-						} finally {
-							if (rejection) {
-								reject(rejection);
-							}
-						}
-					}, 100);
-				});
+						}, 100);
+					});
 
-				browser.disconnect();
+					browser.disconnect();
+				} catch (ex) {
+					// Silently handle, for now.
+				}
 			};
 
 			log("Testing", chalk.magenta(fixturePath));
@@ -93,71 +97,75 @@ const qunitChromeRunner = (
 
 			try {
 				await page.exposeFunction("report", async response => {
-					let coverageReport = {};
+					try {
+						let coverageReport = {};
 
-					if (coverage) {
-						const coverageResults = await page.evaluate(() => __coverage__);
-						const collector = new istanbul.Collector();
-						const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
-						const formats = coverage.formats || defaults.formats;
+						if (coverage) {
+							const coverageResults = await page.evaluate(() => __coverage__);
+							const collector = new istanbul.Collector();
+							const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
+							const formats = coverage.formats || defaults.formats;
 
-						if (verbose && !formats.includes("text-summary")) {
-							formats.push("text-summary");
-						}
-
-						coverageReport = Object.assign({}, coverageReport, {
-							branch: getBranchCoverage(coverageResults),
-							function: getFunctionCoverage(coverageResults),
-							statement: getStatementCoverage(coverageResults)
-						});
-
-						collector.add(coverageResults);
-
-						reporter.addAll(formats);
-						reporter.write(collector, true, () => {
-							if (!formats.includes("text-summary") || formats.length !== 1) {
-								log();
-								log(`Coverage written to ${chalk.magenta(coverage.output)}`);
+							if (verbose && !formats.includes("text-summary")) {
+								formats.push("text-summary");
 							}
-						});
-					}
 
-					log();
-
-					// Group our failures by module / test
-					const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
-						// eslint-disable-next-line no-param-reassign
-						obj[key] = _.groupBy(val, failure => failure.name);
-					});
-
-					// Loop through each module
-					_.forIn(grouped, (val, key) => {
-						const hasModule = !!key;
-
-						if (hasModule) {
-							log(key);
-						}
-
-						// Loop through each test
-						_.forIn(val, (tests, name) => {
-							const indent = hasModule ? "  " : "";
-
-							log(indent + name);
-
-							// Print each failure
-							tests.forEach(({ message, expected, actual }) => {
-								log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
-
-								if (!_.isUndefined(actual)) {
-									log(`${indent}      expected: ${expected}, actual: ${actual}`);
-								}
+							coverageReport = Object.assign({}, coverageReport, {
+								branch: getBranchCoverage(coverageResults),
+								function: getFunctionCoverage(coverageResults),
+								statement: getStatementCoverage(coverageResults)
 							});
 
-							log();
-						});
-					});
+							collector.add(coverageResults);
 
-					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
+							reporter.addAll(formats);
+							reporter.write(collector, true, () => {
+								if (!formats.includes("text-summary") || formats.length !== 1) {
+									log();
+									log(`Coverage written to ${chalk.magenta(coverage.output)}`);
+								}
+							});
+						}
+
+						log();
+
+						// Group our failures by module / test
+						const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+							// eslint-disable-next-line no-param-reassign
+							obj[key] = _.groupBy(val, failure => failure.name);
+						});
+
+						// Loop through each module
+						_.forIn(grouped, (val, key) => {
+							const hasModule = !!key;
+
+							if (hasModule) {
+								log(key);
+							}
+
+							// Loop through each test
+							_.forIn(val, (tests, name) => {
+								const indent = hasModule ? "  " : "";
+
+								log(indent + name);
+
+								// Print each failure
+								tests.forEach(({ message, expected, actual }) => {
+									log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+
+									if (!_.isUndefined(actual)) {
+										log(`${indent}      expected: ${expected}, actual: ${actual}`);
+									}
+								});
+
+								log();
+							});
+						});
+
+						log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
+					} catch (ex) {
+						// Silently handle, for now.
+					}
 
 					try {
 						await closeBrowser(browser);
