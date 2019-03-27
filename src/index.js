@@ -5,17 +5,19 @@ const istanbul = require("istanbul");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
+const fs = require("fs-extra");
+const glob = require("glob");
 
 const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
 const spreadObjectIf = (condition, element) => (condition ? element : {});
 
 const defaults = {
-	timeout: 10000,
+	timeout: 20000,
 	formats: [],
 	output: process.cwd(),
 	puppeteerOptions: {},
-	verbose: false
+	verbose: false,
 };
 
 const qunitChromeRunner = (
@@ -24,8 +26,8 @@ const qunitChromeRunner = (
 		coverage = { output: defaults.output, formats: defaults.formats },
 		verbose = defaults.verbose,
 		timeout = defaults.timeout,
-		puppeteerOptions = defaults.puppeteerOptions
-	} = {}
+		puppeteerOptions = defaults.puppeteerOptions,
+	} = {},
 ) => {
 	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
 	const log = (...val) => {
@@ -111,7 +113,7 @@ const qunitChromeRunner = (
 						coverageReport = Object.assign({}, coverageReport, {
 							branch: getBranchCoverage(coverageResults),
 							function: getFunctionCoverage(coverageResults),
-							statement: getStatementCoverage(coverageResults)
+							statement: getStatementCoverage(coverageResults),
 						});
 
 						collector.add(coverageResults);
@@ -173,9 +175,9 @@ const qunitChromeRunner = (
 								{},
 								{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
 								spreadObjectIf(coverage, {
-									coverage: coverageReport
-								})
-							)
+									coverage: coverageReport,
+								}),
+							),
 						);
 					} catch (ex) {
 						// This might happen if the timeout exceeded and we already closed.
@@ -202,7 +204,39 @@ const qunitChromeRunner = (
 					}
 
 					try {
-						await page.evaluate(() => {
+						const fixture = path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath);
+						const fixtureName = path.basename(fixture, ".html");
+						const snapshotDir = path.join(path.dirname(fixture), "__snapshot__", fixtureName);
+
+						await page.exposeFunction("loadSnapshots", async () => {
+							await fs.ensureDir(snapshotDir);
+
+							const files = await glob.sync(path.join(snapshotDir, "*.snapshot"));
+
+							return files.reduce((snapshots, file) => {
+								return { ...snapshots, [path.basename(file, ".snapshot")]: fs.readFileSync(file, "utf-8") };
+							}, {});
+						});
+
+						await page.exposeFunction("setSnapshot", async (id, snapshot) => {
+							await fs.ensureDir(snapshotDir);
+							await fs.writeFile(path.join(snapshotDir, id + ".snapshot"), snapshot);
+						});
+
+						await page.evaluate(async () => {
+							const storage = await window.loadSnapshots();
+
+							window.__snapshot__ = {
+								storage,
+								get(id) {
+									return window.__snapshot__.storage[id];
+								},
+								async set(id, snapshot) {
+									window.__snapshot__.storage[id] = snapshot;
+									await window.setSnapshot(id, snapshot);
+								},
+							};
+
 							QUnit.done(window.report);
 							QUnit.log(window.logAssertion);
 							QUnit.start();

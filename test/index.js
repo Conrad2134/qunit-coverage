@@ -3,7 +3,7 @@ const path = require("path");
 const qunit = require("../lib/index");
 
 describe("qunit-coverage", function qunitCoverageTests() {
-	this.timeout(15000);
+	this.timeout(30000);
 
 	it("Tests should pass", done => {
 		qunit("test/fixtures/passing.html", {
