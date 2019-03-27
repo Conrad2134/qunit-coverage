@@ -205,7 +205,7 @@ const qunitChromeRunner = (
 					try {
 						const fixture = path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath);
 						const fixtureName = path.basename(fixture, ".html");
-						const snapshotDir = path.join(path.dirname(fixture), "__snapshot__", fixtureName);
+						const snapshotDir = path.join(path.dirname(fixture), "__snapshots__", fixtureName);
 
 						await page.exposeFunction("loadSnapshots", async () => {
 							await fs.ensureDir(snapshotDir);
@@ -252,15 +252,15 @@ const qunitChromeRunner = (
 						await page.evaluate(async () => {
 							const storage = await window.loadSnapshots();
 
-							window.__snapshot__ = {
+							window.__snapshots__ = {
 								storage,
 								get(scope, id) {
-									return window.__snapshot__.storage[scope + "." + id];
+									return window.__snapshots__.storage[scope + "." + id];
 								},
 								async set(scope, id, snapshot) {
 									snapshot = snapshot.trim();
 
-									window.__snapshot__.storage[scope + "." + id] = snapshot;
+									window.__snapshots__.storage[scope + "." + id] = snapshot;
 									await window.setSnapshot(scope, id, snapshot);
 								},
 							};
