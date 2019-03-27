@@ -210,12 +210,12 @@ const qunitChromeRunner = (
 						await page.exposeFunction("loadSnapshots", async () => {
 							await fs.ensureDir(snapshotDir);
 
-							const files = await glob.sync(path.join(snapshotDir, "*.snapshot"));
+							const files = await glob.sync(path.join(snapshotDir, "*.snap"));
 
 							try {
 								return files.reduce((allSnapshots, file) => {
 									const snapshots = require(file) || {};
-									const scope = path.basename(file, ".snapshot");
+									const scope = path.basename(file, ".snap");
 
 									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
 										return { ...existing, [scope + "." + key]: value.trim() };
@@ -234,7 +234,7 @@ const qunitChromeRunner = (
 							await fs.ensureDir(snapshotDir);
 
 							try {
-								const file = path.join(snapshotDir, scope + ".snapshot");
+								const file = path.join(snapshotDir, scope + ".snap");
 								const existing = fs.existsSync(file) ? require(file) : { exports: {} };
 								const snapshotFile = { exports: { ...existing.exports, [id]: snapshot } };
 
