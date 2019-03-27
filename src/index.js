@@ -49,7 +49,6 @@ const qunitChromeRunner = (
 					browser.on("disconnected", () => {
 						setTimeout(() => {
 							const { pid } = browser.process();
-							log(`Browser disconnected... PID: ${pid}`);
 							try {
 								process.kill(pid);
 							} catch (ex) {
@@ -219,7 +218,7 @@ const qunitChromeRunner = (
 									const scope = path.basename(file, ".snapshot");
 
 									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
-										return { ...existing, [scope + "." + key]: value };
+										return { ...existing, [scope + "." + key]: value.trim() };
 									}, {});
 
 									return { ...allSnapshots, ...scoped };
@@ -240,7 +239,7 @@ const qunitChromeRunner = (
 								const snapshotFile = { exports: { ...existing.exports, [id]: snapshot } };
 
 								const str = Object.entries(snapshotFile.exports).reduce((fileStr, [key, value]) => {
-									return fileStr + "module.exports[`" + key + "`] = `" + value + "`;\n\n";
+									return fileStr + "module.exports[`" + key + "`] = `\n" + value + "\n`;\n\n";
 								}, "");
 
 								await fs.writeFile(file, str);
@@ -259,6 +258,8 @@ const qunitChromeRunner = (
 									return window.__snapshot__.storage[scope + "." + id];
 								},
 								async set(scope, id, snapshot) {
+									snapshot = snapshot.trim();
+
 									window.__snapshot__.storage[scope + "." + id] = snapshot;
 									await window.setSnapshot(scope, id, snapshot);
 								},

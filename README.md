@@ -4,7 +4,7 @@ A QUnit test runner with Istanbul and headless Chrome.
 
 ## Prerequisites
 
-You must be using Node >= 6.
+You must be using Node >= 8.9.4.
 
 This test runner assumes that your code is already instrumented for Istanbul.
 
