@@ -213,14 +213,41 @@ const qunitChromeRunner = (
 
 							const files = await glob.sync(path.join(snapshotDir, "*.snapshot"));
 
-							return files.reduce((snapshots, file) => {
-								return { ...snapshots, [path.basename(file, ".snapshot")]: fs.readFileSync(file, "utf-8") };
-							}, {});
+							try {
+								return files.reduce((allSnapshots, file) => {
+									const snapshots = require(file) || {};
+									const scope = path.basename(file, ".snapshot");
+
+									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
+										return { ...existing, [scope + "." + key]: value };
+									}, {});
+
+									return { ...allSnapshots, ...scoped };
+								}, {});
+							} catch (ex) {
+								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
+								console.error(ex);
+								return {};
+							}
 						});
 
-						await page.exposeFunction("setSnapshot", async (id, snapshot) => {
+						await page.exposeFunction("setSnapshot", async (scope, id, snapshot) => {
 							await fs.ensureDir(snapshotDir);
-							await fs.writeFile(path.join(snapshotDir, id + ".snapshot"), snapshot);
+
+							try {
+								const file = path.join(snapshotDir, scope + ".snapshot");
+								const existing = fs.existsSync(file) ? require(file) : { exports: {} };
+								const snapshotFile = { exports: { ...existing.exports, [id]: snapshot } };
+
+								const str = Object.entries(snapshotFile.exports).reduce((fileStr, [key, value]) => {
+									return fileStr + "module.exports[`" + key + "`] = `" + value + "`;\n\n";
+								}, "");
+
+								await fs.writeFile(file, str);
+							} catch (ex) {
+								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
+								console.error(ex);
+							}
 						});
 
 						await page.evaluate(async () => {
@@ -228,12 +255,12 @@ const qunitChromeRunner = (
 
 							window.__snapshot__ = {
 								storage,
-								get(id) {
-									return window.__snapshot__.storage[id];
+								get(scope, id) {
+									return window.__snapshot__.storage[scope + "." + id];
 								},
-								async set(id, snapshot) {
-									window.__snapshot__.storage[id] = snapshot;
-									await window.setSnapshot(id, snapshot);
+								async set(scope, id, snapshot) {
+									window.__snapshot__.storage[scope + "." + id] = snapshot;
+									await window.setSnapshot(scope, id, snapshot);
 								},
 							};
 
