@@ -210,7 +210,7 @@ const qunitChromeRunner = (
 						await page.exposeFunction("loadSnapshots", async () => {
 							await fs.ensureDir(snapshotDir);
 
-							const files = await glob.sync(path.join(snapshotDir, "*.snap"));
+							const files = glob.sync(path.join(snapshotDir, "*.snap"));
 
 							try {
 								return files.reduce((allSnapshots, file) => {
@@ -218,10 +218,10 @@ const qunitChromeRunner = (
 									const scope = path.basename(file, ".snap");
 
 									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
-										return { ...existing, [scope + "." + key]: value.trim() };
+										return _.extend({}, existing, { [scope + "." + key]: value.trim() });
 									}, {});
 
-									return { ...allSnapshots, ...scoped };
+									return _.extend({}, allSnapshots, scoped);
 								}, {});
 							} catch (ex) {
 								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
@@ -236,7 +236,7 @@ const qunitChromeRunner = (
 							try {
 								const file = path.join(snapshotDir, scope + ".snap");
 								const existing = fs.existsSync(file) ? require(file) : { exports: {} };
-								const snapshotFile = { exports: { ...existing.exports, [id]: snapshot } };
+								const snapshotFile = { exports: _.extend({}, existing.exports, { [id]: snapshot }) };
 
 								const str = Object.entries(snapshotFile.exports).reduce((fileStr, [key, value]) => {
 									return fileStr + "module.exports[`" + key + "`] = `\n" + value + "\n`;\n\n";
