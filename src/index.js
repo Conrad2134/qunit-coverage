@@ -5,17 +5,15 @@ const istanbul = require("istanbul");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
+const fs = require("fs-extra");
+const glob = require("glob");
 
-const {
-	getBranchCoverage,
-	getFunctionCoverage,
-	getStatementCoverage,
-} = require("./coverage-parser");
+const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
 const spreadObjectIf = (condition, element) => (condition ? element : {});
 
 const defaults = {
-	timeout: 10000,
+	timeout: 20000,
 	formats: [],
 	output: process.cwd(),
 	puppeteerOptions: {},
@@ -31,9 +29,7 @@ const qunitChromeRunner = (
 		puppeteerOptions = defaults.puppeteerOptions,
 	} = {},
 ) => {
-	const fixturePath = `file:///${path
-		.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath)
-		.replace(/\\/g, "/")}`;
+	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
 	const log = (...val) => {
 		if (verbose) {
 			console.log(...val);
@@ -50,15 +46,26 @@ const qunitChromeRunner = (
 		(async () => {
 			const closeBrowser = async (browser, rejection) => {
 				try {
-					await browser.close();
+					browser.on("disconnected", () => {
+						setTimeout(() => {
+							const { pid } = browser.process();
+							try {
+								process.kill(pid);
+							} catch (ex) {
+								if (ex) {
+									log(`Failed to kill process: ${ex}`);
+								}
+							} finally {
+								if (rejection) {
+									reject(rejection);
+								}
+							}
+						}, 100);
+					});
+
+					browser.disconnect();
 				} catch (ex) {
-					log();
-					log(chalk.yellow("Failed to close Chromium."));
-					log();
-				} finally {
-					if (rejection) {
-						reject(rejection);
-					}
+					// Silently handle, for now.
 				}
 			};
 
@@ -95,10 +102,7 @@ const qunitChromeRunner = (
 					if (coverage) {
 						const coverageResults = await page.evaluate(() => __coverage__);
 						const collector = new istanbul.Collector();
-						const reporter = new istanbul.Reporter(
-							false,
-							coverage.output || defaults.output,
-						);
+						const reporter = new istanbul.Reporter(false, coverage.output || defaults.output);
 						const formats = coverage.formats || defaults.formats;
 
 						if (verbose && !formats.includes("text-summary")) {
@@ -125,13 +129,10 @@ const qunitChromeRunner = (
 					log();
 
 					// Group our failures by module / test
-					const grouped = _.forIn(
-						_.groupBy(failures, failure => failure.module),
-						(val, key, obj) => {
-							// eslint-disable-next-line no-param-reassign
-							obj[key] = _.groupBy(val, failure => failure.name);
-						},
-					);
+					const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+						// eslint-disable-next-line no-param-reassign
+						obj[key] = _.groupBy(val, failure => failure.name);
+					});
 
 					// Loop through each module
 					_.forIn(grouped, (val, key) => {
@@ -149,18 +150,10 @@ const qunitChromeRunner = (
 
 							// Print each failure
 							tests.forEach(({ message, expected, actual }) => {
-								log(
-									chalk.red(
-										`${indent}  \u2717 ${
-											message ? `${chalk.gray(message)}` : "Test failure"
-										}`,
-									),
-								);
+								log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
 
 								if (!_.isUndefined(actual)) {
-									log(
-										`${indent}      expected: ${expected}, actual: ${actual}`,
-									);
+									log(`${indent}      expected: ${expected}, actual: ${actual}`);
 								}
 							});
 
@@ -168,13 +161,7 @@ const qunitChromeRunner = (
 						});
 					});
 
-					log(
-						chalk.blue(
-							`Took ${response.runtime}ms to run ${response.total} tests. ${
-								response.passed
-							} passed, ${response.failed} failed.`,
-						),
-					);
+					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
 
 					try {
 						await closeBrowser(browser);
@@ -185,10 +172,7 @@ const qunitChromeRunner = (
 						resolve(
 							Object.assign(
 								{},
-								{
-									pass: !response.failed,
-									results: _.omit(Object.assign({}, response), "runtime"),
-								},
+								{ pass: !response.failed, results: _.omit(Object.assign({}, response), "runtime") },
 								spreadObjectIf(coverage, {
 									coverage: coverageReport,
 								}),
@@ -202,36 +186,96 @@ const qunitChromeRunner = (
 				// silently handle, for now
 			}
 
-			page.on("load", async () => {
-				try {
-					const qunitMissing = await page.evaluate(
-						() => typeof QUnit === "undefined" || !QUnit,
-					);
+			try {
+				page.on("load", async () => {
+					try {
+						const qunitMissing = await page.evaluate(() => typeof QUnit === "undefined" || !QUnit);
 
-					if (qunitMissing) {
-						log();
-						log(chalk.red("Unable to find the QUnit object."));
-						log();
+						if (qunitMissing) {
+							log();
+							log(chalk.red("Unable to find the QUnit object."));
+							log();
 
-						await closeBrowser(
-							browser,
-							new Error("Unable to find the QUnit object"),
-						);
+							await closeBrowser(browser, new Error("Unable to find the QUnit object"));
+						}
+					} catch (ex) {
+						// silently handle, for now
 					}
-				} catch (ex) {
-					// silently handle, for now
-				}
 
-				try {
-					await page.evaluate(() => {
-						QUnit.done(window.report);
-						QUnit.log(window.logAssertion);
-						QUnit.start();
-					});
-				} catch (ex) {
-					// silently handle, for now.
-				}
-			});
+					try {
+						const fixture = path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath);
+						const fixtureName = path.basename(fixture, ".html");
+						const snapshotDir = path.join(path.dirname(fixture), "__snapshots__", fixtureName);
+
+						await page.exposeFunction("loadSnapshots", async () => {
+							await fs.ensureDir(snapshotDir);
+
+							const files = await glob.sync(path.join(snapshotDir, "*.snap"));
+
+							try {
+								return files.reduce((allSnapshots, file) => {
+									const snapshots = require(file) || {};
+									const scope = path.basename(file, ".snap");
+
+									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
+										return { ...existing, [scope + "." + key]: value.trim() };
+									}, {});
+
+									return { ...allSnapshots, ...scoped };
+								}, {});
+							} catch (ex) {
+								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
+								console.error(ex);
+								return {};
+							}
+						});
+
+						await page.exposeFunction("setSnapshot", async (scope, id, snapshot) => {
+							await fs.ensureDir(snapshotDir);
+
+							try {
+								const file = path.join(snapshotDir, scope + ".snap");
+								const existing = fs.existsSync(file) ? require(file) : { exports: {} };
+								const snapshotFile = { exports: { ...existing.exports, [id]: snapshot } };
+
+								const str = Object.entries(snapshotFile.exports).reduce((fileStr, [key, value]) => {
+									return fileStr + "module.exports[`" + key + "`] = `\n" + value + "\n`;\n\n";
+								}, "");
+
+								await fs.writeFile(file, str);
+							} catch (ex) {
+								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
+								console.error(ex);
+							}
+						});
+
+						await page.evaluate(async () => {
+							const storage = await window.loadSnapshots();
+
+							window.__snapshots__ = {
+								storage,
+								get(scope, id) {
+									return window.__snapshots__.storage[scope + "." + id];
+								},
+								async set(scope, id, snapshot) {
+									snapshot = snapshot.trim();
+
+									window.__snapshots__.storage[scope + "." + id] = snapshot;
+									await window.setSnapshot(scope, id, snapshot);
+								},
+							};
+
+							QUnit.done(window.report);
+							QUnit.log(window.logAssertion);
+							QUnit.start();
+						});
+					} catch (ex) {
+						// silently handle, for now.
+					}
+				});
+			} catch (ex) {
+				// silently handle, for now
+			}
 
 			// Navigate to our test file
 			try {

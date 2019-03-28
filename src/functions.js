@@ -12,5 +12,5 @@ function multiply(a, b) {
 
 module.exports = {
 	isEven,
-	multiply,
+	multiply
 };
