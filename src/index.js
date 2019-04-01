@@ -30,6 +30,10 @@ const qunitChromeRunner = (
 	} = {},
 ) => {
 	const fixturePath = `file:///${path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath).replace(/\\/g, "/")}`;
+	const fixture = path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath);
+	const fixtureName = path.basename(fixture, ".html");
+	const snapshotDir = path.join(path.dirname(fixture), "__snapshots__", fixtureName);
+
 	const log = (...val) => {
 		if (verbose) {
 			console.log(...val);
@@ -96,8 +100,33 @@ const qunitChromeRunner = (
 			}
 
 			try {
-				await page.exposeFunction("report", async response => {
+				const saveSnapshots = snapshots => {
+					fs.ensureDirSync(snapshotDir);
+
+					try {
+						Object.entries(snapshots).forEach(([scope, snaps]) => {
+							const file = path.join(snapshotDir, scope + ".snap");
+							const existing = fs.existsSync(file) ? require(file) : {};
+							const snapshotFile = _.extend({}, existing, snaps);
+
+							const str = Object.entries(snapshotFile).reduce((fileStr, [key, value]) => {
+								return fileStr + "module.exports[`" + key + "`] = `\n" + value.trim() + "\n`;\n\n";
+							}, "");
+
+							fs.writeFileSync(file, str);
+						});
+					} catch (ex) {
+						// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
+						console.error(ex);
+					}
+				};
+
+				await page.exposeFunction("report", async (snapshots, response) => {
 					let coverageReport = {};
+
+					if (snapshots) {
+						saveSnapshots(snapshots);
+					}
 
 					if (coverage) {
 						const coverageResults = await page.evaluate(() => __coverage__);
@@ -203,10 +232,6 @@ const qunitChromeRunner = (
 					}
 
 					try {
-						const fixture = path.join(path.isAbsolute(filePath) ? "" : process.cwd(), filePath);
-						const fixtureName = path.basename(fixture, ".html");
-						const snapshotDir = path.join(path.dirname(fixture), "__snapshots__", fixtureName);
-
 						await page.exposeFunction("loadSnapshots", async () => {
 							await fs.ensureDir(snapshotDir);
 
@@ -218,34 +243,15 @@ const qunitChromeRunner = (
 									const scope = path.basename(file, ".snap");
 
 									const scoped = Object.entries(snapshots).reduce((existing, [key, value]) => {
-										return _.extend({}, existing, { [scope + "." + key]: value.trim() });
+										return _.extend({}, existing, { [key]: value.trim() });
 									}, {});
 
-									return _.extend({}, allSnapshots, scoped);
+									return _.extend({}, allSnapshots, { [scope]: scoped });
 								}, {});
 							} catch (ex) {
 								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
 								console.error(ex);
 								return {};
-							}
-						});
-
-						await page.exposeFunction("setSnapshot", async (scope, id, snapshot) => {
-							await fs.ensureDir(snapshotDir);
-
-							try {
-								const file = path.join(snapshotDir, scope + ".snap");
-								const existing = fs.existsSync(file) ? require(file) : { exports: {} };
-								const snapshotFile = { exports: _.extend({}, existing.exports, { [id]: snapshot }) };
-
-								const str = Object.entries(snapshotFile.exports).reduce((fileStr, [key, value]) => {
-									return fileStr + "module.exports[`" + key + "`] = `\n" + value + "\n`;\n\n";
-								}, "");
-
-								await fs.writeFile(file, str);
-							} catch (ex) {
-								// TODO: Since this is an experimental feature, still need to figure out logging / error handling.
-								console.error(ex);
 							}
 						});
 
@@ -255,17 +261,20 @@ const qunitChromeRunner = (
 							window.__snapshots__ = {
 								storage,
 								get(scope, id) {
-									return window.__snapshots__.storage[scope + "." + id];
+									const scoped = window.__snapshots__.storage[scope] || {};
+
+									return scoped[id];
 								},
 								async set(scope, id, snapshot) {
 									snapshot = snapshot.trim();
+									const group = window.__snapshots__.storage[scope];
+									const scoped = Object.assign({}, group, { [id]: snapshot });
 
-									window.__snapshots__.storage[scope + "." + id] = snapshot;
-									await window.setSnapshot(scope, id, snapshot);
+									window.__snapshots__.storage[scope] = scoped;
 								},
 							};
 
-							QUnit.done(window.report);
+							QUnit.done(response => window.report(window.__snapshots__.storage, response));
 							QUnit.log(window.logAssertion);
 							QUnit.start();
 						});
