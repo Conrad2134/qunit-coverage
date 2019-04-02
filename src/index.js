@@ -10,6 +10,25 @@ const glob = require("glob");
 
 const { getBranchCoverage, getFunctionCoverage, getStatementCoverage } = require("./coverage-parser");
 
+const Category = {
+	CREATED: "\uFF0B",
+	FAILURE: "\u2717",
+};
+
+const getCategoryColor = category => {
+	switch (category) {
+		case Category.CREATED: {
+			return "green";
+		}
+		case Category.FAILURE: {
+			return "red";
+		}
+		default: {
+			return "white";
+		}
+	}
+};
+
 const spreadObjectIf = (condition, element) => (condition ? element : {});
 
 const defaults = {
@@ -78,6 +97,7 @@ const qunitChromeRunner = (
 			const browser = await puppeteer.launch(puppeteerOptions);
 			const page = await browser.newPage();
 			const failures = [];
+			const messages = [];
 
 			// Setting our timeout in case everything below takes too long
 			const timer = setTimeout(() => {
@@ -89,10 +109,19 @@ const qunitChromeRunner = (
 			}, timeout || defaults.timeout);
 
 			try {
+				await page.exposeFunction("snapshotCreated", async (assert, scope, id) => {
+					messages.push(_.extend({}, { category: Category.CREATED, message: `Snapshot \`${id}\` did not exist, so it was created.` }, assert));
+				});
+			} catch (ex) {
+				log(ex.message);
+				// Silently handle, for now.
+			}
+
+			try {
 				await page.exposeFunction("logAssertion", async response => {
 					// Don't log if the test passed or it's a todo test
 					if (!response.result && !response.todo) {
-						failures.push(response);
+						failures.push(_.extend({}, response, { category: Category.FAILURE }));
 					}
 				});
 			} catch (ex) {
@@ -158,7 +187,7 @@ const qunitChromeRunner = (
 					log();
 
 					// Group our failures by module / test
-					const grouped = _.forIn(_.groupBy(failures, failure => failure.module), (val, key, obj) => {
+					const grouped = _.forIn(_.groupBy(failures.concat(messages), failure => failure.module), (val, key, obj) => {
 						// eslint-disable-next-line no-param-reassign
 						obj[key] = _.groupBy(val, failure => failure.name);
 					});
@@ -178,8 +207,12 @@ const qunitChromeRunner = (
 							log(indent + name);
 
 							// Print each failure
-							tests.forEach(({ message, expected, actual }) => {
-								log(chalk.red(`${indent}  \u2717 ${message ? `${chalk.gray(message)}` : "Test failure"}`));
+							tests.forEach(({ message, expected, actual, category }) => {
+								if (message) {
+									message = message.replace(/\n/g, "\n" + indent + "      ");
+								}
+
+								log(chalk[getCategoryColor(category)](`${indent}  ${chalk.bold(category)} ${message ? chalk.gray(message) : "Test failure"}`));
 
 								if (!_.isUndefined(actual)) {
 									log(`${indent}      expected: ${expected}, actual: ${actual}`);
@@ -190,7 +223,11 @@ const qunitChromeRunner = (
 						});
 					});
 
-					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.`));
+					// messages.forEach(message => {
+					// 	log(chalk[getCategoryColor(message.category)].bold(message.category), chalk.gray(message.message, message.assert.moduleId));
+					// });
+
+					log(chalk.blue(`Took ${response.runtime}ms to run ${response.total} tests. ${response.passed} passed, ${response.failed} failed.\n`));
 
 					try {
 						await closeBrowser(browser);
@@ -258,6 +295,14 @@ const qunitChromeRunner = (
 						await page.evaluate(async () => {
 							const storage = await window.loadSnapshots();
 
+							const saveSnapshot = (scope, id, snapshot) => {
+								snapshot = snapshot.trim();
+								const group = window.__snapshots__.storage[scope];
+								const scoped = Object.assign({}, group, { [id]: snapshot });
+
+								window.__snapshots__.storage[scope] = scoped;
+							};
+
 							window.__snapshots__ = {
 								storage,
 								get(scope, id) {
@@ -265,13 +310,11 @@ const qunitChromeRunner = (
 
 									return scoped[id];
 								},
-								async set(scope, id, snapshot) {
-									snapshot = snapshot.trim();
-									const group = window.__snapshots__.storage[scope];
-									const scoped = Object.assign({}, group, { [id]: snapshot });
-
-									window.__snapshots__.storage[scope] = scoped;
+								create(assert, scope, id, snapshot) {
+									saveSnapshot(scope, id, snapshot);
+									window.snapshotCreated({ module: assert.test.module.name, name: assert.test.testName }, scope, id);
 								},
+								set: saveSnapshot,
 							};
 
 							QUnit.done(response => window.report(window.__snapshots__.storage, response));
